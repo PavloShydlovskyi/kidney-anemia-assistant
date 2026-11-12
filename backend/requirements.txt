@@ -1,0 +1,6 @@
+pytest>=8
+# наступні інкременти:
+# fastapi
+# pydantic>=2
+# sqlalchemy>=2
+# uvicorn
