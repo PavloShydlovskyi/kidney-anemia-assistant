@@ -1,28 +1,11 @@
 """Оцінювання функції нирок: ШКФ за CKD-EPI 2021 і категорія ШКФ G1–G5 (KDIGO 2024)."""
 from dataclasses import dataclass
-from enum import Enum
-from typing import Sequence
+from typing import Mapping, Sequence
+
+from .limits import CREATININE_LIMITS, Limits, Sex
 
 UMOL_L_PER_MG_DL = 88.4
 MIN_ADULT_AGE = 18
-
-
-class Sex(str, Enum):
-    MALE = "male"
-    FEMALE = "female"
-
-
-@dataclass(frozen=True)
-class Limits:
-    lower: float
-    upper: float  # обидві межі входять у допустимий діапазон
-
-
-# Граничні значення з клінічної таблиці; у застосунку читаються з БД
-DEFAULT_CREATININE_LIMITS = {          # мкмоль/л
-    Sex.MALE: Limits(40, 1000),
-    Sex.FEMALE: Limits(60, 1000),
-}
 
 
 @dataclass(frozen=True)
@@ -59,11 +42,11 @@ DEFAULT_GFR_CATEGORIES = (
 
 def check_creatinine(
     creatinine_umol_l: float, sex: Sex,
-    limits: dict = DEFAULT_CREATININE_LIMITS,
+    limits: Mapping[Sex, Limits] = CREATININE_LIMITS,
 ) -> None:
     """Перевіряє, що креатинін у граничних значеннях для статі."""
     allowed = limits[sex]
-    if not allowed.lower <= creatinine_umol_l <= allowed.upper:
+    if not allowed.contains(creatinine_umol_l):
         raise ValueError(
             f"Креатинін {creatinine_umol_l} мкмоль/л поза межами "
             f"{allowed.lower}–{allowed.upper} для статі {sex.value}"
