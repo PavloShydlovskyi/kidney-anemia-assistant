@@ -24,10 +24,11 @@ router = APIRouter(prefix="/api", tags=["reference"])
 
 # Назви показників збігаються з полями запиту POST /api/assessments,
 # тому Frontend може прив'язати підказку прямо до поля форми.
-EGFR_UNIT = "ml/min/1.73m2"
+# Коди одиниць збігаються з колонкою reference_thresholds.unit у БД.
+EGFR_UNIT = "ml_min_1_73m2"
 CREATININE_UNIT = "umol_l"
 HEMOGLOBIN_UNIT = "g_l"
-RBC_UNIT = "10^12/l"
+RBC_UNIT = "10e12_l"
 
 
 def _by_sex(indicator: str, limits: dict[Sex, Limits], unit: str) -> list[LimitOut]:
@@ -39,14 +40,11 @@ def _by_sex(indicator: str, limits: dict[Sex, Limits], unit: str) -> list[LimitO
 
 def load_reference_limits() -> list[LimitOut]:
     """Повертає граничні значення з клінічної таблиці."""
+    # ШКФ має однакові межі для обох статей, але, як і в довіднику БД,
+    # віддається окремим рядком для кожної статі — так формі простіше.
+    egfr_by_sex = {Sex.MALE: EGFR_LIMITS, Sex.FEMALE: EGFR_LIMITS}
     return [
-        LimitOut(
-            indicator="egfr_lab",
-            sex=None,  # однакові для чоловіків і жінок
-            lower=EGFR_LIMITS.lower,
-            upper=EGFR_LIMITS.upper,
-            unit=EGFR_UNIT,
-        ),
+        *_by_sex("egfr_lab", egfr_by_sex, EGFR_UNIT),
         *_by_sex("creatinine", CREATININE_LIMITS, CREATININE_UNIT),
         *_by_sex("hemoglobin", HEMOGLOBIN_LIMITS, HEMOGLOBIN_UNIT),
         *_by_sex("rbc", RBC_LIMITS, RBC_UNIT),
@@ -59,7 +57,7 @@ def load_reference_limits() -> list[LimitOut]:
     summary="Граничні значення для форми",
     description=(
         "Межі включні; креатинін і гемоглобін — у базових одиницях "
-        "(мкмоль/л, г/л). sex = null означає, що межа спільна для обох статей."
+        "(мкмоль/л, г/л). Для кожного показника — окремий рядок для кожної статі."
     ),
 )
 def get_reference(

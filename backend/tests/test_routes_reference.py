@@ -26,18 +26,19 @@ def test_returns_200_and_all_limits(client):
     response = client.get("/api/reference")
     assert response.status_code == 200
     limits = response.json()["limits"]
-    # ШКФ — один запис, решта по одному для кожної статі
-    assert len(limits) == 1 + 2 * 3
+    # 4 показники × 2 статі, як рядки input_limit у довіднику БД
+    assert len(limits) == 4 * 2
 
 
 @pytest.mark.parametrize("indicator, sex, lower, upper, unit", [
-    ("egfr_lab", None, 0, 100, "ml/min/1.73m2"),
+    ("egfr_lab", "male", 0, 100, "ml_min_1_73m2"),
+    ("egfr_lab", "female", 0, 100, "ml_min_1_73m2"),
     ("creatinine", "male", 40, 1000, "umol_l"),
     ("creatinine", "female", 60, 1000, "umol_l"),
     ("hemoglobin", "male", 40, 170, "g_l"),
     ("hemoglobin", "female", 30, 160, "g_l"),
-    ("rbc", "male", 1, 6, "10^12/l"),
-    ("rbc", "female", 1, 5, "10^12/l"),
+    ("rbc", "male", 1, 6, "10e12_l"),
+    ("rbc", "female", 1, 5, "10e12_l"),
 ])
 def test_limits_match_clinical_table(client, indicator, sex, lower, upper, unit):
     limit = find(client.get("/api/reference").json()["limits"], indicator, sex)
