@@ -17,12 +17,10 @@ import { initProfileView } from "./views/profileView.js";
 
 const pages = ["assessment", "history", "profile"];
 const guestNotice = document.querySelector("#guest-notice");
-const profileView = initProfileView(document.querySelector("#profile-form"), {
-  onChange: () => (guestNotice.hidden = true),
-});
-guestNotice.hidden = profileView.hasActiveAccount();
+const profileView = initProfileView(document.querySelector("#profile-form"));
 function navigate(page) {
   if (!pages.includes(page)) page = "assessment";
+  guestNotice.hidden = page === "profile" || profileView.hasActiveAccount();
   for (const name of pages) {
     const section = document.querySelector(`#${name}-page`);
     section.hidden = name !== page;
