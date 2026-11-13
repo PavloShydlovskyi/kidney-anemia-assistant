@@ -6,20 +6,25 @@
 Відповідальний: Database Developer.
 """
 import argparse
+import sqlite3
+from contextlib import closing
 from pathlib import Path
 
 
 def backup_database(source: Path, target: Path) -> None:
-    """Копіює БД через sqlite3 backup API (безпечно під час роботи сервера).
-
-    TODO: sqlite3.connect(source).backup(sqlite3.connect(target)).
-    """
-    raise NotImplementedError
+    """Копіює БД через sqlite3 backup API (безпечно під час роботи сервера)."""
+    if not source.exists():
+        raise FileNotFoundError(f"Базу даних {source} не знайдено")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with closing(sqlite3.connect(source)) as source_db, \
+            closing(sqlite3.connect(target)) as target_db:
+        source_db.backup(target_db)
 
 
 def check_integrity(path: Path) -> bool:
-    """TODO: PRAGMA integrity_check повертає 'ok'."""
-    raise NotImplementedError
+    """PRAGMA integrity_check повертає 'ok'."""
+    with closing(sqlite3.connect(path)) as db:
+        return db.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
 
 
 def main(argv: list[str] | None = None) -> int:

@@ -12,16 +12,24 @@
 from sqlalchemy import (
     JSON,
     Boolean,
+    CheckConstraint,
     Column,
     Date,
     DateTime,
     Engine,
     Float,
     ForeignKey,
+    Index,
     Integer,
     MetaData,
     String,
     Table,
+    UniqueConstraint,
+    create_engine,
+    event,
+    false,
+    func,
+    text,
 )
 
 DEFAULT_DATABASE_URL = "sqlite:///kidney.db"
@@ -39,15 +47,16 @@ metadata = MetaData(naming_convention=NAMING_CONVENTION)
 
 
 # ---------- Таблиці ----------
-# Ключові колонки вже є, щоб на таблиці можна було посилатися.
-# TODO (Database Developer): решта колонок, CHECK, UNIQUE та індекси — за звітом, п. 2.4.
+# Кінцевий стан після всіх міграцій; tests/test_migrations.py перевіряє,
+# що migrations/versions дають саме цю схему.
 
 patients = Table(
     "patients", metadata,
     Column("id", Integer, primary_key=True),
-    # TODO: record_code String(32) NOT NULL UNIQUE — умовний код, без ПІБ
-    # TODO: sex String(6) NOT NULL, CHECK sex IN ('male', 'female')
-    # TODO: created_at DateTime NOT NULL, server_default CURRENT_TIMESTAMP
+    Column("record_code", String(32), nullable=False, unique=True),   # умовний код, без ПІБ
+    Column("sex", String(6), nullable=False),
+    Column("created_at", DateTime, nullable=False, server_default=func.current_timestamp()),
+    CheckConstraint("sex IN ('male', 'female')", name="sex"),
 )
 
 lab_results = Table(
@@ -55,21 +64,28 @@ lab_results = Table(
     Column("id", Integer, primary_key=True),
     Column("patient_id", Integer, ForeignKey("patients.id", ondelete="RESTRICT"), nullable=False),
     Column("taken_on", Date, nullable=False),
-    # TODO: age_years Integer NOT NULL, CHECK 0..130
-    # TODO: creatinine_umol_l Float NOT NULL, CHECK > 0
-    # TODO: hemoglobin_g_l Float, CHECK > 0
-    # TODO: rbc_10e12_l Float, CHECK > 0
-    # TODO: egfr_lab Float, CHECK >= 0
-    # TODO: on_dialysis Boolean NOT NULL DEFAULT false
-    # TODO: індекс ix_lab_results_patient_taken (patient_id, taken_on)
+    Column("age_years", Integer, nullable=False),              # вік на дату аналізу
+    Column("creatinine_umol_l", Float, nullable=False),
+    Column("hemoglobin_g_l", Float),                           # NULL — аналізи інкремента 1
+    Column("rbc_10e12_l", Float),
+    Column("egfr_lab", Float),                                 # ШКФ від лабораторії, якщо є
+    Column("on_dialysis", Boolean, nullable=False, server_default=false()),
+    CheckConstraint("age_years BETWEEN 0 AND 130", name="age"),
+    CheckConstraint("creatinine_umol_l > 0", name="creatinine"),
+    CheckConstraint("hemoglobin_g_l > 0", name="hemoglobin"),
+    CheckConstraint("rbc_10e12_l > 0", name="rbc"),
+    CheckConstraint("egfr_lab >= 0", name="egfr_lab"),
+    Index("ix_lab_results_patient_taken", "patient_id", "taken_on"),
 )
 
 guideline_versions = Table(
     "guideline_versions", metadata,
-    Column("version", String(40), primary_key=True),
-    # TODO: title String(200) NOT NULL
-    # TODO: is_current Boolean NOT NULL DEFAULT false
-    # TODO: частковий унікальний індекс ux_guideline_versions_current WHERE is_current
+    Column("version", String(40), primary_key=True),           # 'KDIGO-2024/WHO-2024'
+    Column("title", String(200), nullable=False),
+    Column("is_current", Boolean, nullable=False, server_default=false()),
+    # Чинною може бути лише одна версія настанов
+    Index("ux_guideline_versions_current", "is_current", unique=True,
+          sqlite_where=text("is_current = 1"), postgresql_where=text("is_current")),
 )
 
 assessments = Table(
@@ -77,43 +93,56 @@ assessments = Table(
     Column("id", Integer, primary_key=True),
     Column("lab_result_id", Integer, ForeignKey("lab_results.id", ondelete="RESTRICT"), nullable=False),
     Column("guideline_version", String(40), ForeignKey("guideline_versions.version"), nullable=False),
-    # TODO: egfr Float NOT NULL, CHECK >= 0 (без верхньої межі)
-    # TODO: gfr_category String(3) NOT NULL, CHECK IN ('G1','G2','G3a','G3b','G4','G5')
-    # TODO: anemia_grade String(8), CHECK IN ('none','mild','moderate','severe')
-    # TODO: rbc_status String(6), CHECK IN ('low','normal','high')
-    # TODO: measures JSON NOT NULL
-    # TODO: created_at DateTime NOT NULL, server_default CURRENT_TIMESTAMP
-    # TODO: індекс ix_assessments_lab_result_id
+    Column("egfr", Float, nullable=False),                     # без верхньої межі: може бути > 100
+    Column("gfr_category", String(3), nullable=False),
+    Column("anemia_grade", String(8)),
+    Column("rbc_status", String(6)),
+    Column("measures", JSON, nullable=False),                  # знімок заходів для розгляду
+    Column("created_at", DateTime, nullable=False, server_default=func.current_timestamp()),
+    CheckConstraint("egfr >= 0", name="egfr"),
+    CheckConstraint("gfr_category IN ('G1', 'G2', 'G3a', 'G3b', 'G4', 'G5')", name="gfr_category"),
+    CheckConstraint("anemia_grade IN ('none', 'mild', 'moderate', 'severe')", name="anemia_grade"),
+    CheckConstraint("rbc_status IN ('low', 'normal', 'high')", name="rbc_status"),
+    Index("ix_assessments_lab_result_id", "lab_result_id"),
 )
 
 reference_thresholds = Table(
     "reference_thresholds", metadata,
     Column("id", Integer, primary_key=True),
     Column("guideline_version", String(40), ForeignKey("guideline_versions.version"), nullable=False),
-    # TODO: kind String(16) NOT NULL, CHECK IN ('input_limit','gfr_category','anemia_grade','rbc_reference')
-    # TODO: parameter String(16) NOT NULL — egfr, creatinine, hemoglobin, rbc
-    # TODO: sex String(6) NOT NULL DEFAULT 'any', CHECK IN ('male','female','any')
-    # TODO: code String(8) NOT NULL DEFAULT '' — G3a, mild, normal
-    # TODO: lower_value Float, upper_value Float, unit String(16) NOT NULL
-    # TODO: UNIQUE (guideline_version, kind, parameter, sex, code)
-    # TODO: CHECK (lower_value IS NOT NULL OR upper_value IS NOT NULL), CHECK (lower_value <= upper_value)
+    Column("kind", String(16), nullable=False),
+    Column("parameter", String(16), nullable=False),           # egfr, creatinine, hemoglobin, rbc
+    Column("sex", String(6), nullable=False, server_default="any"),
+    Column("code", String(8), nullable=False, server_default=""),   # G3a, mild, normal
+    Column("lower_value", Float),
+    Column("upper_value", Float),
+    Column("unit", String(16), nullable=False),                # umol_l, g_l, 10e12_l, ml_min_1_73m2
+    UniqueConstraint("guideline_version", "kind", "parameter", "sex", "code",
+                     name="uq_reference_thresholds_row"),
+    CheckConstraint("kind IN ('input_limit', 'gfr_category', 'anemia_grade', 'rbc_reference')",
+                    name="kind"),
+    CheckConstraint("sex IN ('male', 'female', 'any')", name="sex"),
+    CheckConstraint("lower_value IS NOT NULL OR upper_value IS NOT NULL", name="has_bound"),
+    CheckConstraint("lower_value <= upper_value", name="bounds_order"),
 )
 
 
 # ---------- Підключення ----------
 
 def create_db_engine(url: str = DEFAULT_DATABASE_URL) -> Engine:
-    """Створює рушій і для SQLite вмикає PRAGMA на кожному з'єднанні.
-
-    TODO (Database Developer): create_engine(url) + event.listen(engine, "connect",
-    _apply_sqlite_pragmas), якщо url починається з "sqlite".
-    """
-    raise NotImplementedError
+    """Створює рушій і для SQLite вмикає PRAGMA на кожному з'єднанні."""
+    engine = create_engine(url)
+    if engine.dialect.name == "sqlite":
+        event.listen(engine, "connect", _apply_sqlite_pragmas)
+    return engine
 
 
 def _apply_sqlite_pragmas(dbapi_connection, connection_record) -> None:
-    """TODO: PRAGMA foreign_keys = ON; journal_mode = WAL; busy_timeout = SQLITE_BUSY_TIMEOUT_MS."""
-    raise NotImplementedError
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA foreign_keys = ON")      # за замовчуванням SQLite не перевіряє FK
+    cursor.execute("PRAGMA journal_mode = WAL")     # читання не блокується записом
+    cursor.execute(f"PRAGMA busy_timeout = {SQLITE_BUSY_TIMEOUT_MS}")
+    cursor.close()
 
 
 def create_schema(engine: Engine) -> None:

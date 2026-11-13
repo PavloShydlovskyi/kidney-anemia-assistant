@@ -4,9 +4,9 @@
     uvicorn main:app --reload
 Документація API: http://127.0.0.1:8000/docs
 
-Зараз використовуються репозиторії в пам'яті (infrastructure/memory.py).
-Коли Database Developer завершить infrastructure/repositories.py, змінюється
-лише функція build_service — маршрути, сервіс і домен залишаються як є.
+Дані зберігаються в SQLite (infrastructure/repositories.py). Перед першим
+запуском створіть схему:  alembic upgrade head
+Адреса БД — змінна середовища DATABASE_URL (за замовчуванням sqlite:///kidney.db).
 """
 import os
 from typing import Optional
@@ -17,7 +17,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.errors import register_error_handlers
 from api.routes_assessments import router as assessments_router
 from api.routes_reference import router as reference_router
-from infrastructure.memory import InMemoryAssessmentRepository, InMemoryReferenceRepository
+from infrastructure.db import DEFAULT_DATABASE_URL, create_db_engine
+from infrastructure.repositories import SqlAlchemyAssessmentRepository, SqlAlchemyReferenceRepository
 from services.assessment_service import AssessmentService
 
 # Адреси Frontend під час розробки (VS Code Live Server); змінюються через змінну середовища.
@@ -25,9 +26,10 @@ DEFAULT_CORS_ORIGINS = "http://localhost:5500,http://127.0.0.1:5500"
 
 
 def build_service() -> AssessmentService:
+    engine = create_db_engine(os.getenv("DATABASE_URL", DEFAULT_DATABASE_URL))
     return AssessmentService(
-        references=InMemoryReferenceRepository(),
-        assessments=InMemoryAssessmentRepository(),
+        references=SqlAlchemyReferenceRepository(engine),
+        assessments=SqlAlchemyAssessmentRepository(engine),
     )
 
 

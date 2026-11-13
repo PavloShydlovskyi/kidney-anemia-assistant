@@ -1,4 +1,9 @@
-"""Середовище Alembic: підключає опис таблиць з infrastructure/db.py."""
+"""Середовище Alembic: підключає опис таблиць з infrastructure/db.py.
+
+Адреса БД: змінна середовища DATABASE_URL (як у main.py), інакше sqlalchemy.url
+з alembic.ini — так міграції і застосунок завжди працюють з однією базою.
+"""
+import os
 from logging.config import fileConfig
 
 from alembic import context
@@ -11,6 +16,9 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 target_metadata = metadata
+
+if os.getenv("DATABASE_URL"):
+    config.set_main_option("sqlalchemy.url", os.environ["DATABASE_URL"])
 
 
 def run_migrations_offline() -> None:

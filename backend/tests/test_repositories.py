@@ -1,23 +1,24 @@
-"""Інтеграційні тести рівня даних на справжній SQLite у тимчасовому файлі.
-
-Тести вже написані за звітом Database Developer (п. 4.4), а реалізації ще немає,
-тому модуль пропускається. Щоб почати, приберіть рядок pytestmark нижче
-і пишіть код, доки тести не стануть зеленими.
-"""
+"""Інтеграційні тести рівня даних на справжній SQLite у тимчасовому файлі
+(звіт Database Developer, п. 4.4)."""
 from datetime import date
 
 import pytest
+from sqlalchemy import insert, text
+from sqlalchemy.exc import IntegrityError
 
 from domain.anemia import DEFAULT_ANEMIA_GRADES
-from domain.kidney import classify_gfr
+from domain.blood import DEFAULT_RBC_REFERENCE
+from domain.kidney import DEFAULT_GFR_CATEGORIES, classify_gfr
 from domain.limits import DEFAULT_INPUT_LIMITS, Sex
-from infrastructure.db import create_db_engine, create_schema
-from infrastructure.reference_seed import reference_rows
+from infrastructure.db import (
+    create_db_engine, create_schema, guideline_versions, lab_results, patients, reference_thresholds,
+)
+from infrastructure.reference_seed import guideline_version_row, reference_rows
 from infrastructure.repositories import SqlAlchemyAssessmentRepository, SqlAlchemyReferenceRepository
-from services.ports import AssessmentResult, DataIntegrityError, LabInput, UnknownPatientError
-
-pytestmark = pytest.mark.skip(reason="TODO: Database Developer — прибрати, коли репозиторії готові")
-
+from scripts.backup_db import backup_database, check_integrity
+from services.ports import (
+    AssessmentResult, DataIntegrityError, LabInput, ReferenceDataError, UnknownPatientError,
+)
 
 # ---------- Фікстури ----------
 
@@ -25,7 +26,13 @@ pytestmark = pytest.mark.skip(reason="TODO: Database Developer — прибра�
 def engine(tmp_path):
     engine = create_db_engine(f"sqlite:///{tmp_path / 'test.db'}")
     create_schema(engine)
-    # TODO: вставити guideline_version_row(), reference_rows() і пацієнтів з id 1 і 2
+    with engine.begin() as connection:
+        connection.execute(insert(guideline_versions), guideline_version_row())
+        connection.execute(insert(reference_thresholds), reference_rows())
+        connection.execute(insert(patients), [
+            {"id": 1, "record_code": "P-0001", "sex": "male"},
+            {"id": 2, "record_code": "P-0002", "sex": "female"},
+        ])
     return engine
 
 
@@ -99,3 +106,54 @@ def test_calculated_egfr_above_100_is_stored(repo):
 @pytest.mark.parametrize("egfr, expected", [(90, "G1"), (89.9, "G2"), (45, "G3a"), (14.9, "G5")])
 def test_db_categories_work_with_domain(reference, egfr, expected):
     assert classify_gfr(egfr, reference.get_current().gfr_categories) == expected
+
+
+def test_seed_matches_domain_categories_and_rbc(reference):
+    current = reference.get_current()
+    assert set(current.gfr_categories) == set(DEFAULT_GFR_CATEGORIES)
+    assert dict(current.rbc_reference) == dict(DEFAULT_RBC_REFERENCE)
+
+
+def test_unknown_guideline_version_is_rejected(repo):
+    result = AssessmentResult(egfr=40.6, gfr_category="G3b", anemia_grade="moderate",
+                              rbc_status="low", measures=(), guideline_version="KDIGO-2099")
+    with pytest.raises(DataIntegrityError):
+        repo.save(make_lab(), result)
+
+
+def test_missing_schema_is_reported_as_reference_error(tmp_path):
+    empty = SqlAlchemyReferenceRepository(create_db_engine(f"sqlite:///{tmp_path / 'empty.db'}"))
+    with pytest.raises(ReferenceDataError):
+        empty.get_current()
+
+
+# ---------- Схема ----------
+
+def test_foreign_keys_are_enforced(engine):
+    with pytest.raises(IntegrityError), engine.begin() as connection:
+        connection.execute(insert(lab_results), {
+            "patient_id": 999, "taken_on": date(2026, 11, 13),
+            "age_years": 60, "creatinine_umol_l": 100.0})
+
+
+def test_only_one_guideline_version_is_current(engine):
+    with pytest.raises(IntegrityError), engine.begin() as connection:
+        connection.execute(insert(guideline_versions),
+                           {"version": "X", "title": "Друга чинна", "is_current": True})
+
+
+def test_history_query_uses_index(engine):
+    with engine.connect() as connection:
+        plan = connection.execute(text(
+            "EXPLAIN QUERY PLAN SELECT * FROM lab_results WHERE patient_id = 2 ORDER BY taken_on"
+        )).all()
+    assert any("ix_lab_results_patient_taken" in row[-1] for row in plan)
+
+
+def test_backup_copy_is_complete(repo, tmp_path):
+    repo.save(make_lab(), make_result())
+    copy = tmp_path / "backups" / "copy.db"
+    backup_database(tmp_path / "test.db", copy)
+    assert check_integrity(copy)
+    copy_repo = SqlAlchemyAssessmentRepository(create_db_engine(f"sqlite:///{copy}"))
+    assert len(copy_repo.list_by_patient(2)) == 1

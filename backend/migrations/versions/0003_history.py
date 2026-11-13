@@ -13,13 +13,14 @@ depends_on = None
 
 
 def upgrade() -> None:
-    """TODO (Database Developer):
-    - індекс ix_lab_results_patient_taken (patient_id, taken_on);
-    - за потреби: вид 'measure' і колонка comparison у reference_thresholds.
+    """Індекс для запиту історії пацієнта (WHERE patient_id ORDER BY taken_on).
+
+    Вид 'measure' і колонку comparison додасть окрема міграція, коли пороги заходів
+    перейдуть із domain/measures.py у довідник.
     """
-    pass
+    op.create_index("ix_lab_results_patient_taken", "lab_results", ["patient_id", "taken_on"])
 
 
 def downgrade() -> None:
-    """TODO: скасувати зміни upgrade() у зворотному порядку."""
-    pass
+    """Скасовує зміни upgrade()."""
+    op.drop_index("ix_lab_results_patient_taken", table_name="lab_results")

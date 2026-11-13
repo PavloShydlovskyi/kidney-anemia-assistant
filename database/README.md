@@ -8,43 +8,50 @@
 ## Де лежать файли
 
 Код рівня даних живе всередині `backend/`, бо він є шаром серверної частини.
-Файли вже створені як **заготовки**: імпорти, класи, сигнатури функцій і `TODO`
-з описом, що саме написати. Тіла функцій поки кидають `NotImplementedError`.
 
 ```
 backend/
-├── services/ports.py              # готово: порти, DTO і винятки (спільно з Backend)
+├── services/ports.py              # порти, DTO і винятки (спільно з Backend)
 ├── infrastructure/
-│   ├── db.py                      # TODO: колонки, CHECK, індекси, create_db_engine, PRAGMA
-│   ├── repositories.py            # TODO: get_current, save, list_by_patient
-│   ├── reference_seed.py          # TODO: reference_rows() — 24 рядки довідника
-│   └── memory.py                  # тимчасова заміна БД (Backend), видалити після SQLite
-├── alembic.ini                    # готово: налаштування Alembic
+│   ├── db.py                      # таблиці, CHECK, індекси, create_db_engine, PRAGMA
+│   ├── repositories.py            # SqlAlchemyReferenceRepository, SqlAlchemyAssessmentRepository
+│   ├── reference_seed.py          # 24 рядки довідника (KDIGO-2024/WHO-2024)
+│   └── memory.py                  # репозиторії в пам'яті — лише для тестів сервісу й API
+├── alembic.ini                    # налаштування Alembic
 ├── migrations/
-│   ├── env.py                     # готово: підключає metadata з db.py
-│   ├── script.py.mako             # готово: шаблон нових міграцій
+│   ├── env.py                     # metadata з db.py; адреса БД — DATABASE_URL або alembic.ini
+│   ├── script.py.mako             # шаблон нових міграцій
 │   └── versions/
-│       ├── 0001_kidney.py         # TODO: таблиці інкремента 1 + довідник
-│       ├── 0002_anemia.py         # TODO: колонки анемії
-│       └── 0003_history.py        # TODO: індекс історії
-├── scripts/backup_db.py           # TODO: backup_database, check_integrity
-└── tests/test_repositories.py     # готово: 11 тестів, поки пропущені (skip)
+│       ├── 0001_kidney.py         # таблиці інкремента 1 + довідник (14 рядків)
+│       ├── 0002_anemia.py         # Hb, еритроцити, ступінь анемії + довідник (10 рядків)
+│       └── 0003_history.py        # індекс історії
+├── scripts/backup_db.py           # резервна копія + PRAGMA integrity_check
+└── tests/
+    ├── conftest.py                # тимчасова БД, створена міграціями, для всього прогону
+    ├── test_repositories.py       # репозиторії, довідник, обмеження схеми, резервна копія
+    └── test_migrations.py         # міграції = схема db.py; API зберігає історію в SQLite
 
 database/
 ├── README.md                      # цей файл: модель, відповідність API, питання
 └── schema.sql                     # цільова схема SQL (довідка за звітом, п. 2.4)
 ```
 
-## Як почати писати код
+`main.py` (функція `build_service`) уже підключає SQLite-репозиторії замість репозиторіїв у пам'яті.
 
-1. `cd backend && pip install -r requirements.txt` (додано `sqlalchemy` і `alembic`).
-2. У `tests/test_repositories.py` приберіть рядок `pytestmark = pytest.mark.skip(...)`.
-3. Заповнюйте `TODO` у порядку: `db.py` → `reference_seed.py` → `repositories.py`,
-   доки `pytest` не стане зеленим.
-4. Перенесіть таблиці в міграцію `0001_kidney.py` і перевірте: `alembic upgrade head`.
-5. Підключіть репозиторії в `backend/main.py`, функція `build_service`:
-   `SqlAlchemyReferenceRepository(engine)` і `SqlAlchemyAssessmentRepository(engine)`
-   замість `InMemory...`. Більше нічого в сервісі й API міняти не треба.
+## Як запустити
+
+```bash
+cd backend
+pip install -r requirements.txt
+alembic upgrade head          # створює kidney.db (або БД з DATABASE_URL)
+uvicorn main:app --reload     # сервер працює з цією ж БД
+pytest                        # тести не чіпають kidney.db: їм потрібна тимчасова БД
+python scripts/backup_db.py kidney.db backups/kidney-2026-11-13.db
+```
+
+Якщо сервер запустити без `alembic upgrade head`, оцінювання й довідник відповідають 503 з підказкою
+створити схему. Пацієнтів поки додають вручну (маршруту ще немає), наприклад:
+`INSERT INTO patients (record_code, sex) VALUES ('P-0001', 'female');`
 
 ## Логічна модель
 
@@ -120,6 +127,8 @@ erDiagram
 | Межі включні | `Limits.contains` | `lower_value <= x <= upper_value` |
 | Версія настанов | `AssessmentResponse.guideline_version` | `assessments.guideline_version` → `guideline_versions` |
 | Пацієнта немає | HTTP 404 | `UnknownPatientError` |
+| Порушено обмеження БД | HTTP 409 | `DataIntegrityError` |
+| Схеми немає / довідник неповний | HTTP 503 | `ReferenceDataError` |
 
 ## Відкриті питання
 
@@ -130,8 +139,12 @@ erDiagram
 - [ ] **Стать двічі.** Стать приходить у запиті й зберігається в `patients`.
   Пропозиція: якщо `patient_id` вказано, сервер перевіряє збіг.
 - [ ] **Вагітність.** Поле `pregnant` є в запиті, але не зберігається.
-  Вирішити, чи потрібна колонка в `lab_results`.
-- [ ] **Гемоглобін.** В API обов'язковий, у `lab_results.hemoglobin_g_l` — може бути NULL
-  (для інкремента 1, де анемії ще немає). Після інкремента 2 зробити NOT NULL.
+  Пропозиція Database Developer: зберігати, бо від нього залежить, чи підходять пороги
+  Hb ВООЗ 2024 (`anemia_thresholds_apply`), — інакше старий результат неможливо
+  пояснити. Потрібно: поле `LabInput.pregnant` (Backend) і колонка
+  `lab_results.pregnant BOOLEAN NOT NULL DEFAULT false` окремою міграцією 0004.
+- [x] **Гемоглобін.** `lab_results.hemoglobin_g_l` лишається NULL-допустимою: аналізи
+  інкремента 1 законно не мають Hb, а NOT NULL або зламав би міграцію на старих даних,
+  або змусив би вигадувати значення. Обов'язковість для нових аналізів перевіряє API.
 - [x] **Назва показника ШКФ.** Сервіс працює з `parameter = 'egfr'`, як у довіднику,
   і сам зіставляє його з полем API `egfr_lab`. Репозиторію перетворювати не треба.
