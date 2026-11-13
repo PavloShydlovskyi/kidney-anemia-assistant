@@ -77,7 +77,7 @@
 .field select {
   height: 49px;
   border: 0;
-  background: var(--color-soft);
+  background: var(--color-bg);
   border-radius: 13px;
   outline: none;
   color: var(--color-ink);

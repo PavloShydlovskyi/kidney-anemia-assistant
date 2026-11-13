@@ -121,7 +121,6 @@ export function initProfileView(form, storage = browserStorage()) {
     form.reset();
     mode = "auto";
     render();
-    showStatus("Профіль створено. Можна перейти до оцінювання.");
   });
 
   document.querySelector("#account-signout").addEventListener("click", () => {

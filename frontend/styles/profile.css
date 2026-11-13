@@ -51,13 +51,14 @@
 }
 
 .profile-status {
+  max-width: 620px;
   padding: 12px 15px;
   border-radius: 13px;
-  background: var(--color-soft);
-  color: var(--color-accent-ink);
+  background: var(--color-error-soft);
+  color: var(--color-error);
   font-size: 11px;
   line-height: 1.5;
-  margin-bottom: 12px;
+  margin-top: 20px;
 }
 
 .account-details {
@@ -137,9 +138,9 @@
   gap: 12px;
   max-width: 620px;
   padding: 18px;
-  margin-top: 16px;
+  margin-top: 22px;
   border-radius: 18px;
-  background: var(--color-soft);
+  background: var(--color-surface);
   color: var(--color-muted);
 }
 
@@ -149,7 +150,7 @@
 
 .profile-note p {
   margin: 0;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.7;
 }
 

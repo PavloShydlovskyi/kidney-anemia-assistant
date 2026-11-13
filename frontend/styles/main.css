@@ -1,10 +1,10 @@
 :root {
-  --color-bg: #f5f7f2;
+  --color-bg: #f1f4ed;
   --color-surface: #ffffff;
   --color-ink: #202923;
   --color-accent: #d8f591;
   --color-error: #bb554b;
-  --color-muted: color-mix(in srgb, var(--color-ink) 54%, var(--color-surface));
+  --color-muted: color-mix(in srgb, var(--color-ink) 68%, var(--color-surface));
   --color-accent-ink: color-mix(
     in srgb,
     var(--color-ink) 72%,
@@ -17,7 +17,7 @@
   );
   --color-soft: color-mix(
     in srgb,
-    var(--color-accent) 18%,
+    var(--color-accent) 48%,
     var(--color-surface)
   );
   --color-error-soft: color-mix(
