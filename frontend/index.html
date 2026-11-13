@@ -389,11 +389,11 @@
           >
             <div class="heading compact">
               <h1 id="profile-title">Акаунт</h1>
-              <p class="intro">
-                Ваше ім’я та контактна адреса для цього пристрою.
+              <p class="intro" id="profile-intro">
+                Створіть локальний профіль, щоб продовжити.
               </p>
             </div>
-            <div class="profile-card">
+            <div class="profile-card" id="account-setup">
               <div class="profile-heading">
                 <span class="profile-symbol"
                   ><svg class="icon" aria-hidden="true">
@@ -401,7 +401,7 @@
                 ></span>
                 <div>
                   <h2>Дані лікаря</h2>
-                  <p>Змініть ім’я або електронну пошту.</p>
+                  <p>Вкажіть ім’я та електронну пошту.</p>
                 </div>
               </div>
               <form id="profile-form" novalidate>
@@ -433,31 +433,70 @@
                   />
                   <small class="field-error" data-profile-error="email"></small>
                 </div>
-                <div
-                  id="profile-status"
-                  class="profile-status"
-                  role="status"
-                  aria-live="polite"
-                  hidden
-                ></div>
                 <button class="button primary" type="submit">
-                  Зберегти дані
+                  Створити профіль
                   <svg class="icon" aria-hidden="true">
                     <use href="#icon-arrow"></use>
                   </svg>
                 </button>
-                <button class="profile-clear" id="profile-clear" type="button">
-                  Очистити дані на цьому пристрої
-                </button>
               </form>
             </div>
+            <div class="profile-card" id="account-current" hidden>
+              <div class="profile-heading">
+                <span class="profile-symbol"
+                  ><svg class="icon" aria-hidden="true">
+                    <use href="#icon-profile"></use></svg
+                ></span>
+                <div>
+                  <h2>Поточний користувач</h2>
+                  <p>Локальний профіль на цьому пристрої</p>
+                </div>
+              </div>
+              <div class="account-details">
+                <strong id="account-name"></strong>
+                <span id="account-email"></span>
+              </div>
+              <button
+                class="button account-signout"
+                id="account-signout"
+                type="button"
+              >
+                Вийти з акаунта
+              </button>
+            </div>
+            <div class="profile-card" id="account-switch" hidden>
+              <div class="profile-heading">
+                <span class="profile-symbol"
+                  ><svg class="icon" aria-hidden="true">
+                    <use href="#icon-profile"></use></svg
+                ></span>
+                <div>
+                  <h2>Оберіть профіль</h2>
+                  <p>Профілі, збережені на цьому пристрої</p>
+                </div>
+              </div>
+              <div id="account-list" class="account-list"></div>
+              <button class="button primary" id="account-add" type="button">
+                Створити інший профіль
+                <svg class="icon" aria-hidden="true">
+                  <use href="#icon-plus"></use>
+                </svg>
+              </button>
+            </div>
+            <div
+              id="profile-status"
+              class="profile-status"
+              role="status"
+              aria-live="polite"
+              hidden
+            ></div>
             <div class="profile-note">
               <svg class="icon" aria-hidden="true">
                 <use href="#icon-info"></use>
               </svg>
               <p>
-                Поки що профіль зберігається лише в цьому браузері. Входу та
-                синхронізації з базою даних ще немає.
+                Це лише локальні демопрофілі без пароля. Вони не захищають дані
+                пацієнтів і не синхронізуються з базою даних.
               </p>
             </div>
           </section>

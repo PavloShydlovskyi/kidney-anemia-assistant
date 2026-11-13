@@ -1,5 +1,8 @@
 import Chart from "chart.js/auto";
 export function createHemoglobinChart(canvas, items) {
+  const color = getComputedStyle(document.documentElement)
+    .getPropertyValue("--color-ink")
+    .trim();
   return new Chart(canvas, {
     type: "line",
     data: {
@@ -10,12 +13,11 @@ export function createHemoglobinChart(canvas, items) {
         {
           label: "Гемоглобін, г/л",
           data: items.map((item) => item.hemoglobin_g_l),
-          borderColor: "#e9a666",
-          backgroundColor: "rgba(233,166,102,.13)",
-          fill: true,
+          borderColor: color,
+          fill: false,
           tension: 0.35,
           pointRadius: 4,
-          pointBackgroundColor: "#e9a666",
+          pointBackgroundColor: color,
         },
       ],
     },

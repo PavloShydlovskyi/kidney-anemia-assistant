@@ -1,5 +1,8 @@
 import Chart from "chart.js/auto";
 export function createEgfrChart(canvas, items) {
+  const color = getComputedStyle(document.documentElement)
+    .getPropertyValue("--color-accent-ink")
+    .trim();
   return new Chart(canvas, {
     type: "line",
     data: {
@@ -10,12 +13,11 @@ export function createEgfrChart(canvas, items) {
         {
           label: "ШКФ, мл/хв/1,73 м²",
           data: items.map((item) => item.egfr),
-          borderColor: "#91b96d",
-          backgroundColor: "rgba(145,185,109,.13)",
-          fill: true,
+          borderColor: color,
+          fill: false,
           tension: 0.35,
           pointRadius: 4,
-          pointBackgroundColor: "#91b96d",
+          pointBackgroundColor: color,
         },
       ],
     },

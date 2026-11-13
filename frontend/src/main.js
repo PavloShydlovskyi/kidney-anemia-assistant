@@ -13,8 +13,10 @@ import { loadHistory } from "./controllers/historyPage.js";
 import { initProfileView } from "./views/profileView.js";
 
 const pages = ["assessment", "history", "profile"];
+const profileView = initProfileView(document.querySelector("#profile-form"));
 function navigate(page) {
   if (!pages.includes(page)) page = "assessment";
+  if (page !== "profile" && !profileView.hasActiveAccount()) page = "profile";
   for (const name of pages) {
     const section = document.querySelector(`#${name}-page`);
     section.hidden = name !== page;
@@ -42,7 +44,6 @@ document.querySelectorAll('a[href="#assessment"]').forEach((link) =>
 );
 window.addEventListener("hashchange", () => navigate(location.hash.slice(1)));
 navigate(location.hash.slice(1));
-initProfileView(document.querySelector("#profile-form"));
 
 const form = document.querySelector("#assessment-form");
 const view = createAssessmentFormView(form, showResult);

@@ -5,7 +5,7 @@
 .result-card,
 .chart-card,
 .history-card {
-  background: #fff;
+  background: var(--color-surface);
   border-radius: 24px;
   padding: 22px;
 }
@@ -23,7 +23,7 @@
 }
 .result-date {
   font-size: 10px;
-  color: #95a296;
+  color: var(--color-muted);
 }
 .result-grid {
   display: grid;
@@ -33,15 +33,15 @@
 .metric {
   padding: 20px;
   border-radius: 20px;
-  background: #f4f8ee;
+  background: var(--color-soft);
   min-width: 0;
 }
 .metric:nth-child(2) {
-  background: #fdf3e8;
+  background: var(--color-soft);
 }
 .metric-label {
   display: block;
-  color: #778b73;
+  color: var(--color-muted);
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -56,7 +56,7 @@
 }
 .metric-sub {
   font-size: 11px;
-  color: #7d8a7d;
+  color: var(--color-muted);
 }
 .result-section {
   margin-top: 26px;
@@ -68,28 +68,28 @@
 .result-section ul {
   padding-left: 18px;
   margin: 0;
-  color: #647264;
+  color: var(--color-muted);
   font-size: 12px;
   line-height: 1.9;
 }
 .result-section p {
   font-size: 12px;
-  color: #6a796b;
+  color: var(--color-muted);
   line-height: 1.7;
   margin: 0;
 }
 .warning-list li {
-  color: #a16c3c;
+  color: var(--color-error);
 }
 .result-disclaimer {
   font-size: 10px;
-  color: #97a297;
+  color: var(--color-muted);
   line-height: 1.6;
   margin: 20px 0 0;
 }
 .history-summary {
   font-size: 12px;
-  color: #819087;
+  color: var(--color-muted);
   margin: 0 0 15px;
 }
 .charts-grid {
@@ -103,7 +103,7 @@
 }
 .chart-card p {
   font-size: 10px;
-  color: #8a978b;
+  color: var(--color-muted);
   margin: 0 0 20px;
 }
 .chart-wrap {
@@ -125,15 +125,15 @@
 }
 .history-card small {
   display: block;
-  color: #94a095;
+  color: var(--color-muted);
   margin-top: 5px;
   font-size: 10px;
 }
 .history-card .badge {
   border-radius: 12px;
   padding: 8px 10px;
-  background: #eaf5dd;
-  color: #4e7045;
+  background: var(--color-soft);
+  color: var(--color-accent-ink);
   font-size: 11px;
   font-weight: 800;
 }

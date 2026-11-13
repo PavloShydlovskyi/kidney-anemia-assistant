@@ -1,10 +1,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  clearProfile,
-  loadProfile,
-  saveProfile,
-  validateProfile,
+  getActiveAccount,
+  loadAccountState,
+  registerAccount,
+  signOut,
+  switchAccount,
+  validateAccount,
 } from "../src/profile/profileStore.js";
 
 function storage() {
@@ -16,11 +18,11 @@ function storage() {
   };
 }
 
-test("profile validates name and email", () => {
-  assert.ok(validateProfile({ display_name: "A", email: "bad" }).display_name);
-  assert.ok(validateProfile({ display_name: "A", email: "bad" }).email);
+test("account validates name and email", () => {
+  assert.ok(validateAccount({ display_name: "A", email: "bad" }).display_name);
+  assert.ok(validateAccount({ display_name: "A", email: "bad" }).email);
   assert.deepEqual(
-    validateProfile({
+    validateAccount({
       display_name: "Олена Коваленко",
       email: "doctor@example.com",
     }),
@@ -28,26 +30,64 @@ test("profile validates name and email", () => {
   );
 });
 
-test("profile can be saved, loaded and cleared locally", () => {
+test("local accounts can register, sign out and switch", () => {
   const store = storage();
-  const profile = {
-    display_name: "  Олена Коваленко ",
-    email: " doctor@example.com ",
-  };
-  assert.equal(saveProfile(store, profile).ok, true);
-  assert.deepEqual(loadProfile(store), {
-    display_name: "Олена Коваленко",
-    email: "doctor@example.com",
-  });
-  assert.equal(clearProfile(store), true);
-  assert.deepEqual(loadProfile(store), { display_name: "", email: "" });
+  assert.equal(getActiveAccount(store), null);
+  assert.equal(
+    registerAccount(store, {
+      display_name: " Олена Коваленко ",
+      email: " doctor@example.com ",
+    }).ok,
+    true,
+  );
+  assert.equal(getActiveAccount(store).display_name, "Олена Коваленко");
+  assert.equal(signOut(store), true);
+  assert.equal(getActiveAccount(store), null);
+  assert.equal(
+    registerAccount(store, {
+      display_name: "Павло",
+      email: "second@example.com",
+    }).ok,
+    true,
+  );
+  assert.equal(loadAccountState(store).accounts.length, 2);
+  assert.equal(switchAccount(store, "doctor@example.com"), true);
+  assert.equal(getActiveAccount(store).email, "doctor@example.com");
+  assert.equal(switchAccount(store, "missing@example.com"), false);
 });
 
-test("invalid profile is not stored", () => {
+test("duplicate and invalid accounts are rejected", () => {
   const store = storage();
   assert.equal(
-    saveProfile(store, { display_name: "", email: "bad" }).ok,
+    registerAccount(store, { display_name: "", email: "bad" }).ok,
     false,
   );
-  assert.deepEqual(loadProfile(store), { display_name: "", email: "" });
+  assert.equal(
+    registerAccount(store, {
+      display_name: "Олена",
+      email: "Doctor@example.com",
+    }).ok,
+    true,
+  );
+  assert.equal(
+    registerAccount(store, {
+      display_name: "Інша",
+      email: "doctor@example.com",
+    }).ok,
+    false,
+  );
+  assert.equal(loadAccountState(store).accounts.length, 1);
+});
+
+test("previous local profile is migrated", () => {
+  const store = storage();
+  store.setItem(
+    "renalcare.profile.v1",
+    JSON.stringify({
+      display_name: "Олена",
+      email: "doctor@example.com",
+    }),
+  );
+  assert.equal(getActiveAccount(store).display_name, "Олена");
+  assert.equal(store.getItem("renalcare.profile.v1"), null);
 });
