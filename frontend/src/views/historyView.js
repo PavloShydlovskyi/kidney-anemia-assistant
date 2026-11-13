@@ -6,6 +6,15 @@ const el = (tag, className, text) => {
   if (text != null) item.textContent = text;
   return item;
 };
+const icon = (name) => {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+  svg.classList.add("icon");
+  svg.setAttribute("aria-hidden", "true");
+  use.setAttribute("href", `#icon-${name}`);
+  svg.append(use);
+  return svg;
+};
 export function createHistoryView(region) {
   let charts = [];
   function reset() {
@@ -28,8 +37,10 @@ export function createHistoryView(region) {
       reset();
       if (!data.length) {
         const empty = el("div", "empty-state");
+        const illustration = el("span", "empty-icon");
+        illustration.append(icon("history"));
         empty.append(
-          el("span", "", "▤"),
+          illustration,
           el("h2", "", "Обстежень поки немає"),
           el("p", "", "Для цього пацієнта ще не збережено оцінювань."),
         );

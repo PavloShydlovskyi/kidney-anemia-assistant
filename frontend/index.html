@@ -13,29 +13,80 @@
     />
   </head>
   <body>
+    <svg
+      class="icon-defs"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <symbol id="icon-mark" viewBox="0 0 24 24">
+        <path
+          d="M20.5 8.5c0 5.5-8.5 11-8.5 11s-8.5-5.5-8.5-11a5 5 0 0 1 8.5-3.6 5 5 0 0 1 8.5 3.6Z"
+        />
+        <path d="M5 12h4l2-3 2 6 2-3h4" />
+      </symbol>
+      <symbol id="icon-home" viewBox="0 0 24 24">
+        <path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z" />
+        <path d="M9 21v-7h6v7" />
+      </symbol>
+      <symbol id="icon-plus" viewBox="0 0 24 24">
+        <path d="M12 5v14M5 12h14" />
+      </symbol>
+      <symbol id="icon-history" viewBox="0 0 24 24">
+        <rect x="4" y="3" width="16" height="18" rx="3" />
+        <path d="M8 8h8M8 12h8M8 16h5" />
+      </symbol>
+      <symbol id="icon-arrow" viewBox="0 0 24 24">
+        <path d="M7 17 17 7M8 7h9v9" />
+      </symbol>
+      <symbol id="icon-info" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 11v5M12 8h.01" />
+      </symbol>
+    </svg>
     <div class="shell">
       <aside class="sidebar">
         <a class="brand" href="#overview"
-          ><span class="brand-logo">✳</span> renal<span>care</span></a
+          ><span class="brand-logo"
+            ><svg class="icon" aria-hidden="true">
+              <use href="#icon-mark"></use></svg
+          ></span>
+          renal<span>care</span></a
         >
-        <p class="side-label">КЛІНІЧНИЙ ПРОСТІР</p>
+
         <nav aria-label="Основна навігація">
           <button class="nav-link active" data-page="overview" type="button">
-            <b>⌂</b> Огляд</button
+            <svg class="icon" aria-hidden="true">
+              <use href="#icon-home"></use>
+            </svg>
+            Огляд</button
           ><button class="nav-link" data-page="assessment" type="button">
-            <b>✚</b> Нове оцінювання</button
+            <svg class="icon" aria-hidden="true">
+              <use href="#icon-plus"></use>
+            </svg>
+            Нове оцінювання</button
           ><button class="nav-link" data-page="history" type="button">
-            <b>▤</b> Історія
+            <svg class="icon" aria-hidden="true">
+              <use href="#icon-history"></use>
+            </svg>
+            Історія
           </button>
         </nav>
-        <p class="side-footer">✳ &nbsp;Підтримка рішення лікаря</p>
+        <p class="side-footer">
+          <svg class="icon" aria-hidden="true">
+            <use href="#icon-info"></use>
+          </svg>
+          Підтримка рішення лікаря
+        </p>
       </aside>
       <div class="main-column">
         <header class="topbar">
           <a class="brand mobile-brand" href="#overview"
-            ><span class="brand-logo">✳</span> renal<span>care</span></a
-          ><span class="top-label">Простір лікаря</span
-          ><span class="avatar">DR</span>
+            ><span class="brand-logo"
+              ><svg class="icon" aria-hidden="true">
+                <use href="#icon-mark"></use></svg
+            ></span>
+            renal<span>care</span></a
+          ><span class="top-label">Простір лікаря</span>
         </header>
         <main>
           <section
@@ -44,50 +95,66 @@
             aria-labelledby="overview-title"
           >
             <div class="heading">
-              <p class="eyebrow">КЛІНІЧНИЙ ПОМІЧНИК</p>
               <h1 id="overview-title">
-                Турбота починається<br /><em>з ясності.</em>
+                Оцінювання нирок<br /><em>та анемії.</em>
               </h1>
               <p class="intro">
-                Оцінюйте функцію нирок та показники анемії в одному спокійному
-                просторі.
+                Внесіть показники пацієнта, щоб отримати результат оцінювання.
               </p>
             </div>
             <div class="hero">
-              <div class="hero-art" aria-hidden="true"><span>✳</span></div>
+              <div class="hero-art" aria-hidden="true">
+                <svg class="icon" aria-hidden="true">
+                  <use href="#icon-mark"></use>
+                </svg>
+              </div>
               <div class="hero-copy">
-                <p class="eyebrow"><i class="dot"></i> НОВЕ ОЦІНЮВАННЯ</p>
-                <h2>Усі важливі показники.<br />Один зрозумілий результат.</h2>
+                <h2>Нове оцінювання</h2>
                 <p>
-                  Внесіть лабораторні дані пацієнта, щоб отримати оцінку від
-                  сервера.
+                  Заповніть дані аналізів. Результат і застереження будуть
+                  показані після відповіді сервера.
                 </p>
                 <button
                   class="button dark"
                   data-page="assessment"
                   type="button"
                 >
-                  Розпочати оцінювання <span>↗</span>
+                  Розпочати оцінювання
+                  <svg class="icon" aria-hidden="true">
+                    <use href="#icon-arrow"></use>
+                  </svg>
                 </button>
               </div>
             </div>
             <div class="section-heading">
-              <p class="eyebrow">РОБОЧИЙ ПРОЦЕС</p>
-              <h2>Все під рукою</h2>
+              <h2>Розділи</h2>
             </div>
             <div class="feature-grid">
               <button class="feature" data-page="assessment" type="button">
-                <span class="feature-icon green">✚</span
-                ><strong>Нове обстеження <span>↗</span></strong
+                <span class="feature-icon green"
+                  ><svg class="icon" aria-hidden="true">
+                    <use href="#icon-plus"></use></svg></span
+                ><strong
+                  >Нове обстеження
+                  <svg class="icon" aria-hidden="true">
+                    <use href="#icon-arrow"></use></svg></strong
                 ><small>Введення показників та оцінка стану</small></button
               ><button class="feature" data-page="history" type="button">
-                <span class="feature-icon orange">▤</span
-                ><strong>Історія пацієнта <span>↗</span></strong
+                <span class="feature-icon orange"
+                  ><svg class="icon" aria-hidden="true">
+                    <use href="#icon-history"></use></svg></span
+                ><strong
+                  >Історія пацієнта
+                  <svg class="icon" aria-hidden="true">
+                    <use href="#icon-arrow"></use></svg></strong
                 ><small>Динаміка ШКФ і гемоглобіну</small>
               </button>
             </div>
             <div class="notice">
-              <span>ⓘ</span>
+              <span class="notice-icon"
+                ><svg class="icon" aria-hidden="true">
+                  <use href="#icon-info"></use></svg
+              ></span>
               <p>
                 <strong>Підтримка клінічного рішення.</strong> Результати
                 інформаційні. Діагноз і лікування визначає лікар.
@@ -101,10 +168,7 @@
             hidden
           >
             <div class="heading compact">
-              <p class="eyebrow">ОБСТЕЖЕННЯ</p>
-              <h1 id="assessment-title">
-                Нове оцінювання<span class="accent">.</span>
-              </h1>
+              <h1 id="assessment-title">Нове оцінювання</h1>
               <p class="intro">
                 Заповніть лабораторні показники пацієнта. Поля зі зірочкою
                 обов’язкові.
@@ -317,7 +381,9 @@
                   type="submit"
                 >
                   <span class="button-label">Отримати результат</span
-                  ><span class="button-arrow">↗</span
+                  ><span class="button-arrow"
+                    ><svg class="icon" aria-hidden="true">
+                      <use href="#icon-arrow"></use></svg></span
                   ><span class="spinner"></span>
                 </button>
                 <p class="footnote">
@@ -325,9 +391,12 @@
                 </p>
               </form>
               <aside class="info-card">
-                <span class="info-icon">✳</span>
-                <p class="eyebrow">ЩО ВИ ОТРИМАЄТЕ</p>
-                <h3>Ясна картина стану пацієнта</h3>
+                <span class="info-icon"
+                  ><svg class="icon" aria-hidden="true">
+                    <use href="#icon-mark"></use></svg
+                ></span>
+
+                <h3>Результат оцінювання</h3>
                 <ul>
                   <li>ШКФ і категорія функції нирок</li>
                   <li>Ступінь анемії</li>
@@ -345,10 +414,7 @@
             hidden
           >
             <div class="heading compact">
-              <p class="eyebrow">ДИНАМІКА ПОКАЗНИКІВ</p>
-              <h1 id="history-title">
-                Історія пацієнта<span class="accent">.</span>
-              </h1>
+              <h1 id="history-title">Історія пацієнта</h1>
               <p class="intro">
                 Перегляньте попередні обстеження та зміни показників.
               </p>
@@ -366,13 +432,19 @@
                 /><small class="field-error" id="history-error"></small>
               </div>
               <button class="button primary" type="submit">
-                Показати історію <span>↗</span>
+                Показати історію
+                <svg class="icon" aria-hidden="true">
+                  <use href="#icon-arrow"></use>
+                </svg>
               </button>
             </form>
             <div id="history-region" aria-live="polite">
               <div class="empty-state">
-                <span>▤</span>
-                <h2>Історія чекає на вас</h2>
+                <span class="empty-icon"
+                  ><svg class="icon" aria-hidden="true">
+                    <use href="#icon-history"></use></svg
+                ></span>
+                <h2>Історію не відкрито</h2>
                 <p>
                   Введіть ID пацієнта, щоб побачити попередні оцінювання та
                   графіки.
@@ -384,11 +456,17 @@
       </div>
       <nav class="bottom-nav" aria-label="Мобільна навігація">
         <button class="bottom-link active" data-page="overview" type="button">
-          <b>⌂</b><span>Огляд</span></button
+          <svg class="icon" aria-hidden="true">
+            <use href="#icon-home"></use></svg
+          ><span>Огляд</span></button
         ><button class="bottom-link" data-page="assessment" type="button">
-          <b>✚</b><span>Оцінювання</span></button
+          <svg class="icon" aria-hidden="true">
+            <use href="#icon-plus"></use></svg
+          ><span>Оцінювання</span></button
         ><button class="bottom-link" data-page="history" type="button">
-          <b>▤</b><span>Історія</span>
+          <svg class="icon" aria-hidden="true">
+            <use href="#icon-history"></use></svg
+          ><span>Історія</span>
         </button>
       </nav>
     </div>

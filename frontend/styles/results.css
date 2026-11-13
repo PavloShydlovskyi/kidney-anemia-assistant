@@ -6,7 +6,6 @@
 .chart-card,
 .history-card {
   background: #fff;
-  border: 1px solid #e7ece5;
   border-radius: 24px;
   padding: 22px;
 }
@@ -60,9 +59,7 @@
   color: #7d8a7d;
 }
 .result-section {
-  border-top: 1px solid #edf0eb;
-  margin-top: 22px;
-  padding-top: 19px;
+  margin-top: 26px;
 }
 .result-section h3 {
   font-size: 12px;

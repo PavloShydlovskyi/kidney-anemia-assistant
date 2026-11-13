@@ -24,8 +24,12 @@ export function createHemoglobinChart(canvas, items) {
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { grid: { display: false } },
-        y: { beginAtZero: true, grid: { color: "#edf1e9" } },
+        x: { grid: { display: false }, border: { display: false } },
+        y: {
+          beginAtZero: true,
+          grid: { display: false },
+          border: { display: false },
+        },
       },
     },
   });

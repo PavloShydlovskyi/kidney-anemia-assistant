@@ -8,14 +8,12 @@
 .form-card,
 .info-card {
   background: #fff;
-  border: 1px solid #e7ece5;
   border-radius: 26px;
   padding: 21px;
 }
 .form-section {
   padding-bottom: 28px;
   margin-bottom: 26px;
-  border-bottom: 1px solid #edf0eb;
 }
 .form-section.last {
   border: 0;
@@ -78,8 +76,8 @@
 .field input:not([type="radio"]):not([type="checkbox"]),
 .field select {
   height: 49px;
-  border: 1.5px solid #e8ede6;
-  background: #fbfcfa;
+  border: 0;
+  background: #f3f6f1;
   border-radius: 13px;
   outline: none;
   color: #253329;
@@ -87,7 +85,6 @@
   width: 100%;
   font-size: 12px;
   transition:
-    border-color 0.2s,
     box-shadow 0.2s,
     background 0.2s;
 }
@@ -96,14 +93,12 @@
 }
 .field input:focus,
 .field select:focus {
-  border-color: #a4c979 !important;
-  box-shadow: 0 0 0 4px #eaf5db;
+  box-shadow: 0 0 0 3px #c8e4a3;
   background: #fff;
 }
 .field input.invalid,
 .field select.invalid {
-  border-color: #e8998c !important;
-  background: #fff8f6;
+  background: #ffede9;
   animation: shake 0.32s;
 }
 @keyframes shake {
@@ -191,11 +186,9 @@
   border-radius: 12px;
   min-height: 46px;
   background: #f7f9f5;
-  border: 1.5px solid #e9eee8;
   font-size: 11px;
   transition:
     background 0.2s,
-    border-color 0.2s,
     transform 0.2s;
 }
 .segmented label:hover span {
@@ -203,7 +196,6 @@
 }
 .segmented input:checked + span {
   background: #e9f6d6;
-  border-color: #b7d888;
   color: #344e29;
 }
 .segmented input:focus-visible + span {
@@ -213,12 +205,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 13px 0;
+  padding: 13px 14px;
+  border-radius: 13px;
+  background: #f5f7f2;
   cursor: pointer;
   gap: 15px;
 }
 .toggle-row + .toggle-row {
-  border-top: 1px solid #edf0eb;
+  margin-top: 8px;
 }
 .toggle-row strong {
   display: block;
@@ -320,7 +314,10 @@
   width: 43px;
   height: 43px;
   margin-bottom: 25px;
-  font-size: 25px;
+}
+.info-icon .icon {
+  width: 24px;
+  height: 24px;
 }
 .info-card h3 {
   font-size: 23px;
