@@ -1,53 +1,45 @@
 """GET /api/reference — граничні значення вхідних показників для форми.
 
 Frontend бере звідси підказки для полів, щоб форма показувала ті самі межі,
-які перевіряє сервер (schemas.AssessmentRequest). Клієнт порогів не зберігає.
-
-Звідки беруться межі, вирішує залежність load_reference_limits. Зараз вона
-читає значення за замовчуванням із domain/limits.py; коли з'явиться
-ReferenceRepository (таблиця reference_thresholds), достатньо замінити лише її.
+які перевіряє сервер. Межі беруться з ReferenceRepository через сервіс,
+тому зміна довідника в БД одразу видна і формі, і перевірці.
 """
 from fastapi import APIRouter, Depends
 
-from domain.limits import (
-    CREATININE_LIMITS,
-    EGFR_LIMITS,
-    HEMOGLOBIN_LIMITS,
-    RBC_LIMITS,
-    Limits,
-    Sex,
-)
+from domain.limits import Sex
+from services.assessment_service import REQUEST_FIELD_BY_PARAMETER, AssessmentService
 
+from .dependencies import get_service
 from .schemas import LimitOut, ReferenceResponse
 
 router = APIRouter(prefix="/api", tags=["reference"])
 
-# Назви показників збігаються з полями запиту POST /api/assessments,
-# тому Frontend може прив'язати підказку прямо до поля форми.
 # Коди одиниць збігаються з колонкою reference_thresholds.unit у БД.
-EGFR_UNIT = "ml_min_1_73m2"
-CREATININE_UNIT = "umol_l"
-HEMOGLOBIN_UNIT = "g_l"
-RBC_UNIT = "10e12_l"
+UNIT_BY_PARAMETER = {
+    "egfr": "ml_min_1_73m2",
+    "creatinine": "umol_l",
+    "hemoglobin": "g_l",
+    "rbc": "10e12_l",
+}
+PARAMETER_ORDER = ("egfr", "creatinine", "hemoglobin", "rbc")
+SEX_ORDER = (Sex.MALE, Sex.FEMALE)
 
 
-def _by_sex(indicator: str, limits: dict[Sex, Limits], unit: str) -> list[LimitOut]:
+def load_reference_limits(service: AssessmentService = Depends(get_service)) -> list[LimitOut]:
+    """Граничні значення чинної версії настанов у форматі API."""
+    input_limits = service.reference().input_limits
     return [
-        LimitOut(indicator=indicator, sex=sex, lower=value.lower, upper=value.upper, unit=unit)
-        for sex, value in limits.items()
-    ]
-
-
-def load_reference_limits() -> list[LimitOut]:
-    """Повертає граничні значення з клінічної таблиці."""
-    # ШКФ має однакові межі для обох статей, але, як і в довіднику БД,
-    # віддається окремим рядком для кожної статі — так формі простіше.
-    egfr_by_sex = {Sex.MALE: EGFR_LIMITS, Sex.FEMALE: EGFR_LIMITS}
-    return [
-        *_by_sex("egfr_lab", egfr_by_sex, EGFR_UNIT),
-        *_by_sex("creatinine", CREATININE_LIMITS, CREATININE_UNIT),
-        *_by_sex("hemoglobin", HEMOGLOBIN_LIMITS, HEMOGLOBIN_UNIT),
-        *_by_sex("rbc", RBC_LIMITS, RBC_UNIT),
+        LimitOut(
+            # Назви збігаються з полями запиту POST /api/assessments.
+            indicator=REQUEST_FIELD_BY_PARAMETER[parameter],
+            sex=sex,
+            lower=input_limits[(parameter, sex)].lower,
+            upper=input_limits[(parameter, sex)].upper,
+            unit=UNIT_BY_PARAMETER[parameter],
+        )
+        for parameter in PARAMETER_ORDER
+        for sex in SEX_ORDER
+        if (parameter, sex) in input_limits
     ]
 
 

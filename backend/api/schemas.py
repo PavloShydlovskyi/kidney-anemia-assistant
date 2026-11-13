@@ -3,29 +3,22 @@
 Схема запиту:
 1. перевіряє типи і обов'язкові поля;
 2. переводить одиниці до спільних (креатинін — мкмоль/л, гемоглобін — г/л);
-3. перевіряє граничні значення з клінічної таблиці окремо для статі.
+3. перевіряє логічні умови (вагітність лише для жінок).
 
-Якщо щось не так, FastAPI автоматично повертає 422 з поясненням.
+Граничні значення з клінічної таблиці перевіряє сервіс, бо вони беруться
+з довідника БД (reference_thresholds), а не записані в схемі.
 Клінічні розрахунки тут не виконуються — вони в domain/.
 """
-from datetime import datetime
+from datetime import date, datetime
 from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from domain.limits import (
-    CREATININE_LIMITS,
-    EGFR_LIMITS,
-    HEMOGLOBIN_LIMITS,
-    RBC_LIMITS,
-    Limits,
-    Sex,
-)
+from domain.limits import Sex
 
 UMOL_L_PER_MG_DL = 88.4
 G_L_PER_G_DL = 10
-SEX_NAMES = {Sex.MALE: "чоловіків", Sex.FEMALE: "жінок"}
 
 
 class CreatinineUnit(str, Enum):
@@ -73,7 +66,9 @@ class AssessmentRequest(BaseModel):
         },
     )
 
-    patient_id: Optional[int] = Field(default=None, ge=1)
+    patient_id: Optional[int] = Field(
+        default=None, ge=1, description="Якщо вказано, результат зберігається в історії пацієнта"
+    )
     sex: Sex
     age: int = Field(ge=18, le=120, description="Вік, роки; CKD-EPI 2021 — лише для дорослих")
     creatinine: float = Field(gt=0)
@@ -86,6 +81,9 @@ class AssessmentRequest(BaseModel):
     )
     on_dialysis: bool = False
     pregnant: bool = False
+    taken_on: Optional[date] = Field(
+        default=None, description="Дата аналізу; якщо не вказано — сьогодні"
+    )
 
     @property
     def creatinine_umol_l(self) -> float:
@@ -100,33 +98,10 @@ class AssessmentRequest(BaseModel):
         return self.hemoglobin
 
     @model_validator(mode="after")
-    def check_limits(self) -> "AssessmentRequest":
+    def check_pregnancy(self) -> "AssessmentRequest":
         if self.pregnant and self.sex is Sex.MALE:
             raise ValueError("Вагітність може бути вказана лише для жінок")
-
-        errors = [
-            _outside("Креатинін", self.creatinine_umol_l, CREATININE_LIMITS[self.sex], "мкмоль/л", self.sex),
-            _outside("Гемоглобін", self.hemoglobin_g_l, HEMOGLOBIN_LIMITS[self.sex], "г/л", self.sex),
-        ]
-        if self.rbc is not None:
-            errors.append(_outside("Еритроцити", self.rbc, RBC_LIMITS[self.sex], "×10¹²/л", self.sex))
-        if self.egfr_lab is not None:
-            errors.append(_outside("ШКФ", self.egfr_lab, EGFR_LIMITS, "мл/хв/1,73 м²"))
-
-        errors = [e for e in errors if e]
-        if errors:
-            raise ValueError("; ".join(errors))
         return self
-
-
-def _outside(
-    name: str, value: float, limits: Limits, unit: str, sex: Optional[Sex] = None
-) -> Optional[str]:
-    """Повертає текст помилки, якщо значення поза граничними, інакше None."""
-    if limits.contains(value):
-        return None
-    who = f" для {SEX_NAMES[sex]}" if sex else ""
-    return f"{name} {value:g} {unit} поза межами {limits.lower:g}–{limits.upper:g} {unit}{who}"
 
 
 # ---------- Відповіді ----------
@@ -134,8 +109,9 @@ def _outside(
 class AssessmentResponse(BaseModel):
     """Результат оцінювання. Не є діагнозом: заходи — лише для розгляду лікарем."""
 
-    id: Optional[int] = None
+    id: Optional[int] = Field(default=None, description="Немає, якщо patient_id не вказано")
     patient_id: Optional[int] = None
+    taken_on: Optional[date] = None
     egfr: float = Field(description="ШКФ, мл/хв/1,73 м²")
     egfr_display: str = Field(description="Для показу: «> 100», якщо розрахована ШКФ вища за 100")
     egfr_source: str = Field(description="lab — з лабораторії, ckd_epi_2021 — розрахована")
@@ -147,6 +123,25 @@ class AssessmentResponse(BaseModel):
     warnings: list[str] = Field(default_factory=list)
     guideline_version: str
     created_at: Optional[datetime] = None
+
+
+class HistoryItem(BaseModel):
+    """Один запис історії пацієнта (GET /api/patients/{id}/assessments)."""
+
+    id: int
+    taken_on: date
+    age: int
+    creatinine_umol_l: float
+    hemoglobin_g_l: Optional[float] = None
+    rbc: Optional[float] = None
+    egfr_lab: Optional[float] = None
+    on_dialysis: bool
+    egfr: float
+    gfr_category: str
+    anemia_grade: Optional[AnemiaGrade] = None
+    rbc_status: Optional[RbcStatus] = None
+    measures: list[str] = Field(default_factory=list)
+    guideline_version: str
 
 
 class LimitOut(BaseModel):
@@ -161,3 +156,14 @@ class LimitOut(BaseModel):
 
 class ReferenceResponse(BaseModel):
     limits: list[LimitOut]
+
+
+class ErrorItem(BaseModel):
+    field: Optional[str] = Field(description="Поле запиту; null — помилка не прив'язана до поля")
+    message: str
+
+
+class ErrorResponse(BaseModel):
+    """Узгоджений формат помилок 422 / 404 / 409 / 503."""
+
+    detail: list[ErrorItem]
