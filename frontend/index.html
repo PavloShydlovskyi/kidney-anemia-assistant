@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
   </head>
@@ -397,22 +397,22 @@
             <div class="heading compact">
               <h1 id="profile-title">Акаунт</h1>
               <p class="intro" id="profile-intro">
-                Створіть локальний профіль, щоб продовжити.
+                Увійдіть, щоб зберігати оцінювання та переглядати історію.
               </p>
             </div>
-            <div class="profile-card" id="account-setup">
+            <div class="profile-card" id="account-auth">
               <div class="profile-heading">
                 <span class="profile-symbol"
                   ><svg class="icon" aria-hidden="true">
                     <use href="#icon-profile"></use></svg
                 ></span>
                 <div>
-                  <h2>Дані лікаря</h2>
-                  <p>Вкажіть ім’я та електронну пошту.</p>
+                  <h2 id="auth-title">Увійти в акаунт</h2>
+                  <p>Використайте дані свого акаунта.</p>
                 </div>
               </div>
               <form id="profile-form" novalidate>
-                <div class="field">
+                <div class="field" id="profile-name-row" hidden>
                   <label for="profile-name">Ім’я та прізвище</label>
                   <input
                     id="profile-name"
@@ -440,13 +440,28 @@
                   />
                   <small class="field-error" data-profile-error="email"></small>
                 </div>
-                <button class="button primary" type="submit">
-                  Створити профіль
-                  <svg class="icon" aria-hidden="true">
-                    <use href="#icon-arrow"></use>
-                  </svg>
+                <div class="field">
+                  <label for="profile-password">Пароль</label>
+                  <input
+                    id="profile-password"
+                    name="password"
+                    type="password"
+                    minlength="8"
+                    autocomplete="current-password"
+                    placeholder="Щонайменше 8 символів"
+                  />
+                  <small
+                    class="field-error"
+                    data-profile-error="password"
+                  ></small>
+                </div>
+                <button class="button primary" id="auth-submit" type="submit">
+                  Увійти
                 </button>
               </form>
+              <button class="profile-mode" id="auth-toggle" type="button">
+                Створити акаунт
+              </button>
             </div>
             <div class="profile-card" id="account-current" hidden>
               <div class="profile-heading">
@@ -456,12 +471,12 @@
                 ></span>
                 <div>
                   <h2>Поточний користувач</h2>
-                  <p>Локальний профіль на цьому пристрої</p>
+                  <p>Ваш акаунт</p>
                 </div>
               </div>
               <div class="account-details">
-                <strong id="account-name"></strong>
-                <span id="account-email"></span>
+                <strong id="account-name"></strong
+                ><span id="account-email"></span>
               </div>
               <button
                 class="button account-signout"
@@ -471,41 +486,13 @@
                 Вийти з акаунта
               </button>
             </div>
-            <div class="profile-card" id="account-switch" hidden>
-              <div class="profile-heading">
-                <span class="profile-symbol"
-                  ><svg class="icon" aria-hidden="true">
-                    <use href="#icon-profile"></use></svg
-                ></span>
-                <div>
-                  <h2>Оберіть профіль</h2>
-                  <p>Профілі, збережені на цьому пристрої</p>
-                </div>
-              </div>
-              <div id="account-list" class="account-list"></div>
-              <button class="button primary" id="account-add" type="button">
-                Створити інший профіль
-                <svg class="icon" aria-hidden="true">
-                  <use href="#icon-plus"></use>
-                </svg>
-              </button>
-            </div>
-            <div
+            <p
               id="profile-status"
               class="profile-status"
               role="status"
               aria-live="polite"
               hidden
-            ></div>
-            <div class="profile-note">
-              <svg class="icon" aria-hidden="true">
-                <use href="#icon-info"></use>
-              </svg>
-              <p>
-                Це лише локальні демопрофілі без пароля. Вони не захищають дані
-                пацієнтів і не синхронізуються з базою даних.
-              </p>
-            </div>
+            ></p>
           </section>
         </main>
       </div>

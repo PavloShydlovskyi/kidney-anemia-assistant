@@ -12,6 +12,8 @@ export async function request(path, options = {}, fetcher = fetch) {
   try {
     response = await fetcher(`${API_BASE_URL}${path}`, {
       ...options,
+      credentials: "include",
+      cache: "no-store",
       headers: {
         Accept: "application/json",
         ...(options.body ? { "Content-Type": "application/json" } : {}),
@@ -32,12 +34,17 @@ export async function request(path, options = {}, fetcher = fetch) {
   }
   if (!response.ok)
     throw new ApiError(
-      response.status === 404
-        ? "Пацієнта не знайдено."
-        : "Не вдалося отримати результат. Спробуйте ще раз.",
+      response.status === 401
+        ? "Увійдіть в акаунт і спробуйте ще раз."
+        : response.status === 409
+          ? "Ця електронна пошта вже зареєстрована."
+          : response.status === 404
+            ? "Пацієнта не знайдено."
+            : "Не вдалося отримати результат. Спробуйте ще раз.",
       response.status,
       Array.isArray(body?.detail) ? body.detail : [],
     );
+  if (body === null && response.status === 204) return {};
   if (body === null)
     throw new ApiError("Сервер повернув порожню відповідь.", response.status);
   return body;

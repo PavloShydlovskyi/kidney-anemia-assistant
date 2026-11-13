@@ -1,143 +1,132 @@
-import {
-  getActiveAccount,
-  loadAccountState,
-  registerAccount,
-  signOut,
-  switchAccount,
-} from "../profile/profileStore.js";
+import { getSession, login, logout, register } from "../api/authApi.js";
+import { validateAuth } from "../profile/authValidation.js";
 
-function browserStorage() {
-  try {
-    return window.localStorage;
-  } catch {
-    return null;
-  }
-}
+export function initProfileView(form, onChange = () => {}) {
+  const $ = (selector) => document.querySelector(selector);
+  const authCard = $("#account-auth");
+  const currentCard = $("#account-current");
+  const status = $("#profile-status");
+  const submit = $("#auth-submit");
+  let user = null;
+  let registering = true;
+  let changed = false;
 
-export function initProfileView(form, storage = browserStorage()) {
-  const title = document.querySelector("#profile-title");
-  const intro = document.querySelector("#profile-intro");
-  const setupCard = document.querySelector("#account-setup");
-  const currentCard = document.querySelector("#account-current");
-  const switchCard = document.querySelector("#account-switch");
-  const list = document.querySelector("#account-list");
-  const status = document.querySelector("#profile-status");
-  const nameInput = form.elements.namedItem("display_name");
-  const emailInput = form.elements.namedItem("email");
-  let mode = "auto";
-
-  function showStatus(message) {
+  function showError(message) {
     status.textContent = message;
-    status.hidden = false;
+    status.hidden = !message;
   }
 
-  function clearMessages() {
-    for (const field of ["display_name", "email"]) {
-      const input = form.elements.namedItem(field);
-      form.querySelector(`[data-profile-error="${field}"]`).textContent = "";
-      input.removeAttribute("aria-invalid");
-      input.classList.remove("invalid");
-    }
-    status.hidden = true;
-    status.textContent = "";
+  function clearErrors() {
+    showError("");
+    form.querySelectorAll("[data-profile-error]").forEach((node) => {
+      node.textContent = "";
+    });
+    form.querySelectorAll("[aria-invalid]").forEach((node) => {
+      node.removeAttribute("aria-invalid");
+    });
   }
 
   function render() {
-    const state = loadAccountState(storage);
-    const active = state.accounts.find((item) => item.id === state.activeId);
-    const setupVisible =
-      !active && (state.accounts.length === 0 || mode === "register");
-    setupCard.hidden = !setupVisible;
-    currentCard.hidden = !active;
-    switchCard.hidden = !!active || setupVisible;
-    title.textContent = active
-      ? "Акаунт"
-      : setupVisible
-        ? "Створіть профіль"
-        : "Оберіть профіль";
-    intro.textContent = active
-      ? "Ваші дані на цьому пристрої."
-      : setupVisible
-        ? "Вкажіть ім’я та електронну пошту, щоб почати роботу."
-        : "Увійдіть у збережений профіль або створіть інший.";
-    if (active) {
-      document.querySelector("#account-name").textContent = active.display_name;
-      document.querySelector("#account-email").textContent = active.email;
-    }
-    if (!switchCard.hidden) {
-      list.replaceChildren();
-      for (const account of state.accounts) {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "account-choice";
-        button.setAttribute("aria-label", `Увійти як ${account.display_name}`);
-        const details = document.createElement("span");
-        const name = document.createElement("strong");
-        const email = document.createElement("small");
-        name.textContent = account.display_name;
-        email.textContent = account.email;
-        details.append(name, email);
-        const action = document.createElement("span");
-        action.textContent = "Увійти";
-        button.append(details, action);
-        button.addEventListener("click", () => {
-          clearMessages();
-          if (switchAccount(storage, account.id)) {
-            window.location.reload();
-          } else {
-            showStatus("Не вдалося відкрити профіль у цьому браузері.");
-          }
-        });
-        list.append(button);
-      }
+    authCard.hidden = !!user;
+    currentCard.hidden = !user;
+    $("#profile-name-row").hidden = !registering;
+    $("#auth-title").textContent = registering
+      ? "Створити акаунт"
+      : "Увійти в акаунт";
+    submit.textContent = registering ? "Створити акаунт" : "Увійти";
+    $("#auth-toggle").textContent = registering
+      ? "У мене вже є акаунт"
+      : "Створити акаунт";
+    form.elements.password.autocomplete = registering
+      ? "new-password"
+      : "current-password";
+    if (user) {
+      $("#account-name").textContent = user.display_name;
+      $("#account-email").textContent = user.email;
     }
   }
 
-  for (const input of [nameInput, emailInput]) {
-    input.addEventListener("input", clearMessages);
-  }
+  $("#auth-toggle").addEventListener("click", () => {
+    registering = !registering;
+    form.elements.password.value = "";
+    clearErrors();
+    render();
+  });
 
-  form.addEventListener("submit", (event) => {
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
-    clearMessages();
-    const result = registerAccount(storage, {
-      display_name: nameInput.value,
-      email: emailInput.value,
-    });
-    if (result.errors) {
-      for (const [field, message] of Object.entries(result.errors)) {
-        const input = form.elements.namedItem(field);
+    clearErrors();
+    const data = {
+      display_name: form.elements.display_name.value.trim(),
+      email: form.elements.email.value.trim(),
+      password: form.elements.password.value,
+    };
+    const errors = validateAuth(data, registering);
+    if (Object.keys(errors).length) {
+      for (const [field, message] of Object.entries(errors)) {
         form.querySelector(`[data-profile-error="${field}"]`).textContent =
           message;
-        input.setAttribute("aria-invalid", "true");
-        input.classList.add("invalid");
+        form.elements[field].setAttribute("aria-invalid", "true");
       }
       return;
     }
-    if (!result.ok) {
-      showStatus(result.message);
-      return;
+    submit.disabled = true;
+    try {
+      const result = await (registering
+        ? register(data)
+        : login({
+            email: data.email,
+            password: data.password,
+          }));
+      if (!result.user) throw Error("Сервер не повернув дані користувача.");
+      changed = true;
+      user = result.user;
+      form.reset();
+      render();
+      onChange();
+    } catch (error) {
+      for (const detail of error.details ?? []) {
+        if (!["display_name", "email", "password"].includes(detail.field))
+          continue;
+        const field = form.elements.namedItem(detail.field);
+        const label = form.querySelector(
+          `[data-profile-error="${detail.field}"]`,
+        );
+        if (!field || !label) continue;
+        label.textContent = detail.message;
+        field.setAttribute("aria-invalid", "true");
+      }
+      if (form.querySelector('[aria-invalid="true"]')) return;
+      showError(
+        !registering && error.status === 401
+          ? "Невірна електронна пошта або пароль."
+          : error.message || "Не вдалося увійти. Спробуйте ще раз.",
+      );
+    } finally {
+      submit.disabled = false;
     }
-    form.reset();
-    mode = "auto";
-    render();
   });
 
-  document.querySelector("#account-signout").addEventListener("click", () => {
-    clearMessages();
-    if (signOut(storage)) {
+  $("#account-signout").addEventListener("click", async () => {
+    try {
+      await logout();
       window.location.reload();
-    } else {
-      showStatus("Не вдалося вийти з профілю в цьому браузері.");
+    } catch (error) {
+      showError(error.message || "Не вдалося вийти з акаунта.");
     }
-  });
-
-  document.querySelector("#account-add").addEventListener("click", () => {
-    clearMessages();
-    mode = "register";
-    render();
   });
 
   render();
-  return { hasActiveAccount: () => !!getActiveAccount(storage) };
+  getSession()
+    .then((result) => {
+      if (changed) return;
+      user = result.user ?? null;
+      render();
+      onChange();
+    })
+    .catch((error) => {
+      if (!changed && error.status !== 401)
+        showError("Не вдалося перевірити акаунт. Спробуйте пізніше.");
+    });
+  return { hasActiveAccount: () => !!user };
 }

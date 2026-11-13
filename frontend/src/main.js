@@ -10,14 +10,19 @@ import {
 import { getReference } from "./api/referenceApi.js";
 import { createAssessmentFormView } from "./views/assessmentFormView.js";
 import { showResult } from "./views/resultView.js";
-import { createHistoryView } from "./views/historyView.js";
 import { submitAssessment } from "./controllers/assessmentForm.js";
 import { loadHistory } from "./controllers/historyPage.js";
 import { initProfileView } from "./views/profileView.js";
 
 const pages = ["assessment", "history", "profile"];
 const guestNotice = document.querySelector("#guest-notice");
-const profileView = initProfileView(document.querySelector("#profile-form"));
+const profileView = initProfileView(
+  document.querySelector("#profile-form"),
+  () => {
+    guestNotice.hidden =
+      location.hash === "#profile" || profileView.hasActiveAccount();
+  },
+);
 function navigate(page) {
   if (!pages.includes(page)) page = "assessment";
   guestNotice.hidden = page === "profile" || profileView.hasActiveAccount();
@@ -68,18 +73,31 @@ form.addEventListener("submit", async (event) => {
   }
 });
 const historyForm = document.querySelector("#history-form");
-const historyView = createHistoryView(
-  document.querySelector("#history-region"),
-);
-historyForm.addEventListener("submit", (event) => {
+let historyView;
+historyForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const raw = document.querySelector("#history-patient-id").value;
   const error = document.querySelector("#history-error");
+  if (!profileView.hasActiveAccount()) {
+    error.textContent = "Увійдіть в акаунт, щоб переглянути збережену історію.";
+    return;
+  }
+  const raw = document.querySelector("#history-patient-id").value;
   const id = Number(raw);
   if (!Number.isInteger(id) || id < 1) {
     error.textContent = "Введіть цілий ID пацієнта від 1.";
     return;
   }
   error.textContent = "";
+  if (!historyView) {
+    try {
+      const { createHistoryView } = await import("./views/historyView.js");
+      historyView = createHistoryView(
+        document.querySelector("#history-region"),
+      );
+    } catch {
+      error.textContent = "Не вдалося відкрити історію. Оновіть сторінку.";
+      return;
+    }
+  }
   loadHistory(id, historyView, { getPatientAssessments });
 });

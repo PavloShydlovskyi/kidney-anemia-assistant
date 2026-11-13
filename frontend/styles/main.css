@@ -26,7 +26,7 @@
     var(--color-surface)
   );
   --color-shadow: color-mix(in srgb, var(--color-ink) 10%, transparent);
-  font-family: Manrope, "DM Sans", sans-serif;
+  font-family: Manrope, sans-serif;
   color: var(--color-ink);
   background: var(--color-bg);
   font-synthesis: none;
@@ -143,7 +143,7 @@ a {
   display: none;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 32px 20px 120px;
+  padding: 32px 20px 170px;
   animation: pageIn 0.45s both;
 }
 .page.visible {
