@@ -53,9 +53,12 @@ def check_creatinine(
         )
 
 
-def calculate_egfr(creatinine_umol_l: float, age: int, sex: Sex) -> float:
+def calculate_egfr(
+    creatinine_umol_l: float, age: int, sex: Sex,
+    creatinine_limits: Mapping[Sex, Limits] = CREATININE_LIMITS,
+) -> float:
     """Повертає ШКФ, мл/хв/1,73 м², за креатиніном у мкмоль/л."""
-    check_creatinine(creatinine_umol_l, sex)
+    check_creatinine(creatinine_umol_l, sex, creatinine_limits)
     if age < MIN_ADULT_AGE:
         raise ValueError("CKD-EPI 2021 застосовують лише для дорослих")
 

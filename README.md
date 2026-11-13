@@ -43,15 +43,23 @@ docs/                 # звіти та клінічні таблиці
 | Гемоглобін | 40–170 | 30–160 | г/л |
 | Еритроцити | 1–6 | 1–5 | ×10¹²/л |
 
-## Запуск тестів
+## Запуск
+
+Потрібен Python 3.10 або новіший.
 
 ```bash
 cd backend
 python -m venv .venv
 source .venv/bin/activate      # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-pytest
+pytest                         # тести
+uvicorn main:app --reload      # сервер на http://127.0.0.1:8000
 ```
+
+Документація API з кнопкою **Try it out**: http://127.0.0.1:8000/docs
+
+Поки що дані зберігаються в пам'яті й зникають після перезапуску сервера;
+SQLite-репозиторії додає Database Developer (гілка `database`).
 
 ## План розробки (інкрементна модель)
 
