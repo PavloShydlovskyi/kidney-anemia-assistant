@@ -1,4 +1,15 @@
-/**
- * Українські підписи для кодів сервера: anemia_grade (none, mild, moderate, severe),
- * rbc_status (low, normal, high), sex, одиниці, egfr_source (lab, ckd_epi_2021).
- */
+export const anemiaLabels = {
+  none: "Анемії немає",
+  mild: "Легка анемія",
+  moderate: "Помірна анемія",
+  severe: "Тяжка анемія",
+};
+export const rbcLabels = {
+  low: "Нижче норми",
+  normal: "У межах норми",
+  high: "Вище норми",
+};
+export const sourceLabels = {
+  lab: "Лабораторний показник",
+  ckd_epi_2021: "Розрахунок CKD-EPI 2021",
+};

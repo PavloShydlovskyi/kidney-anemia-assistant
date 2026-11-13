@@ -1,4 +1,397 @@
-<!--
-  Єдина сторінка застосунку: форма обстеження, результат, історія пацієнта.
-  Підключає styles/*.css, Chart.js і src/main.js як ES-модуль.
--->
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f5f7f2" />
+    <title>RenalCare — помічник лікаря</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <a class="brand" href="#overview"
+          ><span class="brand-logo">✳</span> renal<span>care</span></a
+        >
+        <p class="side-label">КЛІНІЧНИЙ ПРОСТІР</p>
+        <nav aria-label="Основна навігація">
+          <button class="nav-link active" data-page="overview" type="button">
+            <b>⌂</b> Огляд</button
+          ><button class="nav-link" data-page="assessment" type="button">
+            <b>✚</b> Нове оцінювання</button
+          ><button class="nav-link" data-page="history" type="button">
+            <b>▤</b> Історія
+          </button>
+        </nav>
+        <p class="side-footer">✳ &nbsp;Підтримка рішення лікаря</p>
+      </aside>
+      <div class="main-column">
+        <header class="topbar">
+          <a class="brand mobile-brand" href="#overview"
+            ><span class="brand-logo">✳</span> renal<span>care</span></a
+          ><span class="top-label">Простір лікаря</span
+          ><span class="avatar">DR</span>
+        </header>
+        <main>
+          <section
+            class="page visible"
+            id="overview-page"
+            aria-labelledby="overview-title"
+          >
+            <div class="heading">
+              <p class="eyebrow">КЛІНІЧНИЙ ПОМІЧНИК</p>
+              <h1 id="overview-title">
+                Турбота починається<br /><em>з ясності.</em>
+              </h1>
+              <p class="intro">
+                Оцінюйте функцію нирок та показники анемії в одному спокійному
+                просторі.
+              </p>
+            </div>
+            <div class="hero">
+              <div class="hero-art" aria-hidden="true"><span>✳</span></div>
+              <div class="hero-copy">
+                <p class="eyebrow"><i class="dot"></i> НОВЕ ОЦІНЮВАННЯ</p>
+                <h2>Усі важливі показники.<br />Один зрозумілий результат.</h2>
+                <p>
+                  Внесіть лабораторні дані пацієнта, щоб отримати оцінку від
+                  сервера.
+                </p>
+                <button
+                  class="button dark"
+                  data-page="assessment"
+                  type="button"
+                >
+                  Розпочати оцінювання <span>↗</span>
+                </button>
+              </div>
+            </div>
+            <div class="section-heading">
+              <p class="eyebrow">РОБОЧИЙ ПРОЦЕС</p>
+              <h2>Все під рукою</h2>
+            </div>
+            <div class="feature-grid">
+              <button class="feature" data-page="assessment" type="button">
+                <span class="feature-icon green">✚</span
+                ><strong>Нове обстеження <span>↗</span></strong
+                ><small>Введення показників та оцінка стану</small></button
+              ><button class="feature" data-page="history" type="button">
+                <span class="feature-icon orange">▤</span
+                ><strong>Історія пацієнта <span>↗</span></strong
+                ><small>Динаміка ШКФ і гемоглобіну</small>
+              </button>
+            </div>
+            <div class="notice">
+              <span>ⓘ</span>
+              <p>
+                <strong>Підтримка клінічного рішення.</strong> Результати
+                інформаційні. Діагноз і лікування визначає лікар.
+              </p>
+            </div>
+          </section>
+          <section
+            class="page"
+            id="assessment-page"
+            aria-labelledby="assessment-title"
+            hidden
+          >
+            <div class="heading compact">
+              <p class="eyebrow">ОБСТЕЖЕННЯ</p>
+              <h1 id="assessment-title">
+                Нове оцінювання<span class="accent">.</span>
+              </h1>
+              <p class="intro">
+                Заповніть лабораторні показники пацієнта. Поля зі зірочкою
+                обов’язкові.
+              </p>
+            </div>
+            <div class="form-layout">
+              <form id="assessment-form" class="form-card" novalidate>
+                <div class="form-section">
+                  <div class="form-title">
+                    <span class="step">01</span>
+                    <div>
+                      <h2>Інформація про пацієнта</h2>
+                      <p>Базові дані для оцінювання</p>
+                    </div>
+                  </div>
+                  <div class="field-grid">
+                    <div class="field">
+                      <label for="patient_id"
+                        >ID пацієнта <small>необов’язково</small></label
+                      ><input
+                        id="patient_id"
+                        name="patient_id"
+                        type="number"
+                        min="1"
+                        step="1"
+                        inputmode="numeric"
+                        placeholder="Наприклад, 1024"
+                      /><small
+                        class="field-error"
+                        data-error-for="patient_id"
+                      ></small>
+                    </div>
+                    <div class="field">
+                      <label for="age">Вік <em>*</em></label>
+                      <div class="input-wrap">
+                        <input
+                          id="age"
+                          name="age"
+                          type="number"
+                          min="18"
+                          max="120"
+                          step="1"
+                          inputmode="numeric"
+                          placeholder="18–120"
+                        /><span>років</span>
+                      </div>
+                      <small class="field-error" data-error-for="age"></small>
+                    </div>
+                  </div>
+                  <fieldset class="field sex-field">
+                    <legend>Стать <em>*</em></legend>
+                    <div class="segmented">
+                      <label
+                        ><input type="radio" name="sex" value="male" /><span
+                          >Чоловіча</span
+                        ></label
+                      ><label
+                        ><input type="radio" name="sex" value="female" /><span
+                          >Жіноча</span
+                        ></label
+                      >
+                    </div>
+                    <small class="field-error" data-error-for="sex"></small>
+                  </fieldset>
+                </div>
+                <div class="form-section">
+                  <div class="form-title">
+                    <span class="step">02</span>
+                    <div>
+                      <h2>Лабораторні показники</h2>
+                      <p>Значення з останнього аналізу</p>
+                    </div>
+                  </div>
+                  <div class="field-grid">
+                    <div class="field">
+                      <label for="creatinine">Креатинін <em>*</em></label>
+                      <div class="measure">
+                        <input
+                          id="creatinine"
+                          name="creatinine"
+                          type="number"
+                          min="0"
+                          step="any"
+                          inputmode="decimal"
+                          placeholder="Значення"
+                        /><select
+                          id="creatinine_unit"
+                          name="creatinine_unit"
+                          aria-label="Одиниця креатиніну"
+                        >
+                          <option value="umol_l">мкмоль/л</option>
+                          <option value="mg_dl">мг/дл</option>
+                        </select>
+                      </div>
+                      <small
+                        class="field-hint"
+                        data-hint-for="creatinine"
+                      ></small
+                      ><small
+                        class="field-error"
+                        data-error-for="creatinine"
+                      ></small>
+                    </div>
+                    <div class="field">
+                      <label for="hemoglobin">Гемоглобін <em>*</em></label>
+                      <div class="measure">
+                        <input
+                          id="hemoglobin"
+                          name="hemoglobin"
+                          type="number"
+                          min="0"
+                          step="any"
+                          inputmode="decimal"
+                          placeholder="Значення"
+                        /><select
+                          id="hemoglobin_unit"
+                          name="hemoglobin_unit"
+                          aria-label="Одиниця гемоглобіну"
+                        >
+                          <option value="g_l">г/л</option>
+                          <option value="g_dl">г/дл</option>
+                        </select>
+                      </div>
+                      <small
+                        class="field-hint"
+                        data-hint-for="hemoglobin"
+                      ></small
+                      ><small
+                        class="field-error"
+                        data-error-for="hemoglobin"
+                      ></small>
+                    </div>
+                    <div class="field">
+                      <label for="rbc"
+                        >Еритроцити <small>необов’язково</small></label
+                      >
+                      <div class="input-wrap">
+                        <input
+                          id="rbc"
+                          name="rbc"
+                          type="number"
+                          min="0"
+                          step="any"
+                          inputmode="decimal"
+                          placeholder="Значення"
+                        /><span>×10¹²/л</span>
+                      </div>
+                      <small class="field-hint" data-hint-for="rbc"></small
+                      ><small class="field-error" data-error-for="rbc"></small>
+                    </div>
+                    <div class="field">
+                      <label for="egfr_lab"
+                        >ШКФ лабораторії <small>необов’язково</small></label
+                      >
+                      <div class="input-wrap">
+                        <input
+                          id="egfr_lab"
+                          name="egfr_lab"
+                          type="number"
+                          min="0"
+                          step="any"
+                          inputmode="decimal"
+                          placeholder="Якщо відома"
+                        /><span>мл/хв</span>
+                      </div>
+                      <small class="field-hint"
+                        >Якщо порожньо, сервер розрахує ШКФ</small
+                      ><small
+                        class="field-error"
+                        data-error-for="egfr_lab"
+                      ></small>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-section last">
+                  <div class="form-title">
+                    <span class="step">03</span>
+                    <div>
+                      <h2>Додаткові відомості</h2>
+                      <p>Для правильної інтерпретації</p>
+                    </div>
+                  </div>
+                  <label class="toggle-row"
+                    ><span
+                      ><strong>Пацієнт на діалізі</strong
+                      ><small>Врахувати під час оцінювання</small></span
+                    ><input
+                      id="on_dialysis"
+                      name="on_dialysis"
+                      type="checkbox" /><span class="switch"></span></label
+                  ><label class="toggle-row" id="pregnant-row" hidden
+                    ><span
+                      ><strong>Вагітність</strong
+                      ><small>Доступно для пацієнток</small></span
+                    ><input
+                      id="pregnant"
+                      name="pregnant"
+                      type="checkbox" /><span class="switch"></span
+                  ></label>
+                </div>
+                <div
+                  id="form-error"
+                  class="form-error"
+                  role="alert"
+                  hidden
+                ></div>
+                <button
+                  class="button primary submit"
+                  id="submit-button"
+                  type="submit"
+                >
+                  <span class="button-label">Отримати результат</span
+                  ><span class="button-arrow">↗</span
+                  ><span class="spinner"></span>
+                </button>
+                <p class="footnote">
+                  Дані обробляє сервер відповідно до клінічних правил проєкту.
+                </p>
+              </form>
+              <aside class="info-card">
+                <span class="info-icon">✳</span>
+                <p class="eyebrow">ЩО ВИ ОТРИМАЄТЕ</p>
+                <h3>Ясна картина стану пацієнта</h3>
+                <ul>
+                  <li>ШКФ і категорія функції нирок</li>
+                  <li>Ступінь анемії</li>
+                  <li>Показники еритроцитів</li>
+                  <li>Застереження та заходи для розгляду</li>
+                </ul>
+              </aside>
+            </div>
+            <div id="result-region" aria-live="polite"></div>
+          </section>
+          <section
+            class="page"
+            id="history-page"
+            aria-labelledby="history-title"
+            hidden
+          >
+            <div class="heading compact">
+              <p class="eyebrow">ДИНАМІКА ПОКАЗНИКІВ</p>
+              <h1 id="history-title">
+                Історія пацієнта<span class="accent">.</span>
+              </h1>
+              <p class="intro">
+                Перегляньте попередні обстеження та зміни показників.
+              </p>
+            </div>
+            <form id="history-form" class="history-search" novalidate>
+              <div class="field">
+                <label for="history-patient-id">ID пацієнта</label
+                ><input
+                  id="history-patient-id"
+                  type="number"
+                  min="1"
+                  step="1"
+                  inputmode="numeric"
+                  placeholder="Введіть ID пацієнта"
+                /><small class="field-error" id="history-error"></small>
+              </div>
+              <button class="button primary" type="submit">
+                Показати історію <span>↗</span>
+              </button>
+            </form>
+            <div id="history-region" aria-live="polite">
+              <div class="empty-state">
+                <span>▤</span>
+                <h2>Історія чекає на вас</h2>
+                <p>
+                  Введіть ID пацієнта, щоб побачити попередні оцінювання та
+                  графіки.
+                </p>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+      <nav class="bottom-nav" aria-label="Мобільна навігація">
+        <button class="bottom-link active" data-page="overview" type="button">
+          <b>⌂</b><span>Огляд</span></button
+        ><button class="bottom-link" data-page="assessment" type="button">
+          <b>✚</b><span>Оцінювання</span></button
+        ><button class="bottom-link" data-page="history" type="button">
+          <b>▤</b><span>Історія</span>
+        </button>
+      </nav>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
