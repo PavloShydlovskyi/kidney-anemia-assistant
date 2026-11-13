@@ -19,7 +19,7 @@ backend/
 │   └── memory.py                  # репозиторії в пам'яті — лише для тестів сервісу й API
 ├── alembic.ini                    # налаштування Alembic
 ├── migrations/
-│   ├── env.py                     # metadata з db.py; адреса БД — DATABASE_URL або alembic.ini
+│   ├── env.py                     # підключає metadata з db.py
 │   ├── script.py.mako             # шаблон нових міграцій
 │   └── versions/
 │       ├── 0001_kidney.py         # таблиці інкремента 1 + довідник (14 рядків)
@@ -43,7 +43,7 @@ database/
 ```bash
 cd backend
 pip install -r requirements.txt
-alembic upgrade head          # створює kidney.db (або БД з DATABASE_URL)
+alembic upgrade head          # створює kidney.db (адреса — sqlalchemy.url в alembic.ini)
 uvicorn main:app --reload     # сервер працює з цією ж БД
 pytest                        # тести не чіпають kidney.db: їм потрібна тимчасова БД
 python scripts/backup_db.py kidney.db backups/kidney-2026-11-13.db

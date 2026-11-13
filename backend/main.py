@@ -6,7 +6,8 @@
 
 Дані зберігаються в SQLite (infrastructure/repositories.py). Перед першим
 запуском створіть схему:  alembic upgrade head
-Адреса БД — змінна середовища DATABASE_URL (за замовчуванням sqlite:///kidney.db).
+Адреса БД — змінна середовища DATABASE_URL (за замовчуванням sqlite:///kidney.db,
+як sqlalchemy.url в alembic.ini; для іншої БД змініть обидва).
 """
 import os
 from typing import Optional

@@ -18,9 +18,11 @@ os.environ["DATABASE_URL"] = f"sqlite:///{Path(_tmp_dir.name) / 'app.db'}"
 
 
 def alembic_config() -> Config:
-    """Конфігурація без alembic.ini, щоб тести не перебудовували логування."""
+    """Конфігурація без alembic.ini (щоб тести не перебудовували логування);
+    адреса БД — поточна DATABASE_URL, тобто та сама, з якою працює застосунок."""
     config = Config()
     config.set_main_option("script_location", str(BACKEND / "migrations"))
+    config.set_main_option("sqlalchemy.url", os.environ["DATABASE_URL"])
     return config
 
 
