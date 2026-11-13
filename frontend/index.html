@@ -24,9 +24,9 @@
         />
         <path d="M5 12h4l2-3 2 6 2-3h4" />
       </symbol>
-      <symbol id="icon-home" viewBox="0 0 24 24">
-        <path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z" />
-        <path d="M9 21v-7h6v7" />
+      <symbol id="icon-profile" viewBox="0 0 24 24">
+        <circle cx="12" cy="8" r="4" />
+        <path d="M4 21v-2a8 8 0 0 1 16 0v2" />
       </symbol>
       <symbol id="icon-plus" viewBox="0 0 24 24">
         <path d="M12 5v14M5 12h14" />
@@ -45,7 +45,7 @@
     </svg>
     <div class="shell">
       <aside class="sidebar">
-        <a class="brand" href="#overview"
+        <a class="brand" href="#assessment"
           ><span class="brand-logo"
             ><svg class="icon" aria-hidden="true">
               <use href="#icon-mark"></use></svg
@@ -54,21 +54,23 @@
         >
 
         <nav aria-label="Основна навігація">
-          <button class="nav-link active" data-page="overview" type="button">
-            <svg class="icon" aria-hidden="true">
-              <use href="#icon-home"></use>
-            </svg>
-            Огляд</button
-          ><button class="nav-link" data-page="assessment" type="button">
+          <button class="nav-link active" data-page="assessment" type="button">
             <svg class="icon" aria-hidden="true">
               <use href="#icon-plus"></use>
             </svg>
-            Нове оцінювання</button
-          ><button class="nav-link" data-page="history" type="button">
+            Оцінювання
+          </button>
+          <button class="nav-link" data-page="history" type="button">
             <svg class="icon" aria-hidden="true">
               <use href="#icon-history"></use>
             </svg>
             Історія
+          </button>
+          <button class="nav-link" data-page="profile" type="button">
+            <svg class="icon" aria-hidden="true">
+              <use href="#icon-profile"></use>
+            </svg>
+            Акаунт
           </button>
         </nav>
         <p class="side-footer">
@@ -80,7 +82,7 @@
       </aside>
       <div class="main-column">
         <header class="topbar">
-          <a class="brand mobile-brand" href="#overview"
+          <a class="brand mobile-brand" href="#assessment"
             ><span class="brand-logo"
               ><svg class="icon" aria-hidden="true">
                 <use href="#icon-mark"></use></svg
@@ -91,81 +93,8 @@
         <main>
           <section
             class="page visible"
-            id="overview-page"
-            aria-labelledby="overview-title"
-          >
-            <div class="heading">
-              <h1 id="overview-title">
-                Оцінювання нирок<br /><em>та анемії.</em>
-              </h1>
-              <p class="intro">
-                Внесіть показники пацієнта, щоб отримати результат оцінювання.
-              </p>
-            </div>
-            <div class="hero">
-              <div class="hero-art" aria-hidden="true">
-                <svg class="icon" aria-hidden="true">
-                  <use href="#icon-mark"></use>
-                </svg>
-              </div>
-              <div class="hero-copy">
-                <h2>Нове оцінювання</h2>
-                <p>
-                  Заповніть дані аналізів. Результат і застереження будуть
-                  показані після відповіді сервера.
-                </p>
-                <button
-                  class="button dark"
-                  data-page="assessment"
-                  type="button"
-                >
-                  Розпочати оцінювання
-                  <svg class="icon" aria-hidden="true">
-                    <use href="#icon-arrow"></use>
-                  </svg>
-                </button>
-              </div>
-            </div>
-            <div class="section-heading">
-              <h2>Розділи</h2>
-            </div>
-            <div class="feature-grid">
-              <button class="feature" data-page="assessment" type="button">
-                <span class="feature-icon green"
-                  ><svg class="icon" aria-hidden="true">
-                    <use href="#icon-plus"></use></svg></span
-                ><strong
-                  >Нове обстеження
-                  <svg class="icon" aria-hidden="true">
-                    <use href="#icon-arrow"></use></svg></strong
-                ><small>Введення показників та оцінка стану</small></button
-              ><button class="feature" data-page="history" type="button">
-                <span class="feature-icon orange"
-                  ><svg class="icon" aria-hidden="true">
-                    <use href="#icon-history"></use></svg></span
-                ><strong
-                  >Історія пацієнта
-                  <svg class="icon" aria-hidden="true">
-                    <use href="#icon-arrow"></use></svg></strong
-                ><small>Динаміка ШКФ і гемоглобіну</small>
-              </button>
-            </div>
-            <div class="notice">
-              <span class="notice-icon"
-                ><svg class="icon" aria-hidden="true">
-                  <use href="#icon-info"></use></svg
-              ></span>
-              <p>
-                <strong>Підтримка клінічного рішення.</strong> Результати
-                інформаційні. Діагноз і лікування визначає лікар.
-              </p>
-            </div>
-          </section>
-          <section
-            class="page"
             id="assessment-page"
             aria-labelledby="assessment-title"
-            hidden
           >
             <div class="heading compact">
               <h1 id="assessment-title">Нове оцінювання</h1>
@@ -452,21 +381,106 @@
               </div>
             </div>
           </section>
+          <section
+            class="page"
+            id="profile-page"
+            aria-labelledby="profile-title"
+            hidden
+          >
+            <div class="heading compact">
+              <h1 id="profile-title">Акаунт</h1>
+              <p class="intro">
+                Ваше ім’я та контактна адреса для цього пристрою.
+              </p>
+            </div>
+            <div class="profile-card">
+              <div class="profile-heading">
+                <span class="profile-symbol"
+                  ><svg class="icon" aria-hidden="true">
+                    <use href="#icon-profile"></use></svg
+                ></span>
+                <div>
+                  <h2>Дані лікаря</h2>
+                  <p>Змініть ім’я або електронну пошту.</p>
+                </div>
+              </div>
+              <form id="profile-form" novalidate>
+                <div class="field">
+                  <label for="profile-name">Ім’я та прізвище</label>
+                  <input
+                    id="profile-name"
+                    name="display_name"
+                    type="text"
+                    maxlength="80"
+                    autocomplete="name"
+                    placeholder="Ваше ім’я"
+                  />
+                  <small
+                    class="field-error"
+                    data-profile-error="display_name"
+                  ></small>
+                </div>
+                <div class="field">
+                  <label for="profile-email">Електронна пошта</label>
+                  <input
+                    id="profile-email"
+                    name="email"
+                    type="email"
+                    maxlength="254"
+                    autocomplete="email"
+                    inputmode="email"
+                    placeholder="name@example.com"
+                  />
+                  <small class="field-error" data-profile-error="email"></small>
+                </div>
+                <div
+                  id="profile-status"
+                  class="profile-status"
+                  role="status"
+                  aria-live="polite"
+                  hidden
+                ></div>
+                <button class="button primary" type="submit">
+                  Зберегти дані
+                  <svg class="icon" aria-hidden="true">
+                    <use href="#icon-arrow"></use>
+                  </svg>
+                </button>
+                <button class="profile-clear" id="profile-clear" type="button">
+                  Очистити дані на цьому пристрої
+                </button>
+              </form>
+            </div>
+            <div class="profile-note">
+              <svg class="icon" aria-hidden="true">
+                <use href="#icon-info"></use>
+              </svg>
+              <p>
+                Поки що профіль зберігається лише в цьому браузері. Входу та
+                синхронізації з базою даних ще немає.
+              </p>
+            </div>
+          </section>
         </main>
       </div>
       <nav class="bottom-nav" aria-label="Мобільна навігація">
-        <button class="bottom-link active" data-page="overview" type="button">
+        <button class="bottom-link active" data-page="assessment" type="button">
           <svg class="icon" aria-hidden="true">
-            <use href="#icon-home"></use></svg
-          ><span>Огляд</span></button
-        ><button class="bottom-link" data-page="assessment" type="button">
+            <use href="#icon-plus"></use>
+          </svg>
+          <span>Оцінювання</span>
+        </button>
+        <button class="bottom-link" data-page="history" type="button">
           <svg class="icon" aria-hidden="true">
-            <use href="#icon-plus"></use></svg
-          ><span>Оцінювання</span></button
-        ><button class="bottom-link" data-page="history" type="button">
+            <use href="#icon-history"></use>
+          </svg>
+          <span>Історія</span>
+        </button>
+        <button class="bottom-link" data-page="profile" type="button">
           <svg class="icon" aria-hidden="true">
-            <use href="#icon-history"></use></svg
-          ><span>Історія</span>
+            <use href="#icon-profile"></use>
+          </svg>
+          <span>Акаунт</span>
         </button>
       </nav>
     </div>

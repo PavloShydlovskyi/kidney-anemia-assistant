@@ -1,6 +1,7 @@
 import "../styles/main.css";
 import "../styles/form.css";
 import "../styles/results.css";
+import "../styles/profile.css";
 import { createAssessment } from "./api/assessmentApi.js";
 import { getPatientAssessments } from "./api/assessmentApi.js";
 import { getReference } from "./api/referenceApi.js";
@@ -9,10 +10,11 @@ import { showResult } from "./views/resultView.js";
 import { createHistoryView } from "./views/historyView.js";
 import { submitAssessment } from "./controllers/assessmentForm.js";
 import { loadHistory } from "./controllers/historyPage.js";
+import { initProfileView } from "./views/profileView.js";
 
-const pages = ["overview", "assessment", "history"];
+const pages = ["assessment", "history", "profile"];
 function navigate(page) {
-  if (!pages.includes(page)) page = "overview";
+  if (!pages.includes(page)) page = "assessment";
   for (const name of pages) {
     const section = document.querySelector(`#${name}-page`);
     section.hidden = name !== page;
@@ -32,14 +34,15 @@ document
   .forEach((button) =>
     button.addEventListener("click", () => navigate(button.dataset.page)),
   );
-document.querySelectorAll('a[href="#overview"]').forEach((link) =>
+document.querySelectorAll('a[href="#assessment"]').forEach((link) =>
   link.addEventListener("click", (event) => {
     event.preventDefault();
-    navigate("overview");
+    navigate("assessment");
   }),
 );
 window.addEventListener("hashchange", () => navigate(location.hash.slice(1)));
 navigate(location.hash.slice(1));
+initProfileView(document.querySelector("#profile-form"));
 
 const form = document.querySelector("#assessment-form");
 const view = createAssessmentFormView(form, showResult);
