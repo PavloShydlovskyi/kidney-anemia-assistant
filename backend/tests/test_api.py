@@ -3,6 +3,10 @@ import pytest
 from fastapi.testclient import TestClient
 
 from infrastructure.memory import InMemoryAssessmentRepository, InMemoryReferenceRepository
+from dataclasses import replace
+from concurrent.futures import ThreadPoolExecutor
+
+from infrastructure.memory import default_reference_set
 from main import create_app
 from services.assessment_service import AssessmentService
 
@@ -75,3 +79,31 @@ def test_cors_allows_live_server(client):
 
 def test_openapi_docs_available(client):
     assert client.get("/docs").status_code == 200
+
+
+def test_incomplete_reference_returns_503_in_agreed_format():
+    reference = replace(default_reference_set(), rbc_reference={})
+    service = AssessmentService(InMemoryReferenceRepository(reference), InMemoryAssessmentRepository())
+    response = TestClient(create_app(service)).post("/api/assessments", json=EXAMPLE)
+    assert response.status_code == 503
+    assert response.json()["detail"][0]["field"] is None
+
+
+def test_unexpected_error_returns_500_in_agreed_format():
+    class BrokenReferences:
+        def get_current(self):
+            raise RuntimeError("БД недоступна")
+
+    service = AssessmentService(BrokenReferences(), InMemoryAssessmentRepository())
+    client = TestClient(create_app(service), raise_server_exceptions=False)
+    response = client.post("/api/assessments", json=EXAMPLE)
+    assert response.status_code == 500
+    assert response.json()["detail"][0]["message"].startswith("Внутрішня помилка сервера")
+
+
+def test_parallel_saves_get_unique_ids():
+    repository = InMemoryAssessmentRepository()
+    client = TestClient(create_app(AssessmentService(InMemoryReferenceRepository(), repository)))
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        ids = list(pool.map(lambda _: client.post("/api/assessments", json=EXAMPLE).json()["id"], range(40)))
+    assert sorted(ids) == list(range(1, 41))

@@ -15,10 +15,19 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from domain.limits import Sex
+from domain.kidney import MIN_ADULT_AGE
+from domain.limits import Parameter, Sex
+from domain.units import creatinine_mg_dl_to_umol_l, hemoglobin_g_dl_to_g_l
 
-UMOL_L_PER_MG_DL = 88.4
-G_L_PER_G_DL = 10
+MAX_PLAUSIBLE_AGE = 120
+
+# Показник довідника -> поле запиту POST /api/assessments.
+REQUEST_FIELD_BY_PARAMETER = {
+    Parameter.EGFR: "egfr_lab",
+    Parameter.CREATININE: "creatinine",
+    Parameter.HEMOGLOBIN: "hemoglobin",
+    Parameter.RBC: "rbc",
+}
 
 
 class CreatinineUnit(str, Enum):
@@ -31,7 +40,7 @@ class HemoglobinUnit(str, Enum):
     G_DL = "g_dl"
 
 
-class AnemiaGrade(str, Enum):
+class AnemiaGradeCode(str, Enum):
     NONE = "none"
     MILD = "mild"
     MODERATE = "moderate"
@@ -43,8 +52,6 @@ class RbcStatus(str, Enum):
     NORMAL = "normal"
     HIGH = "high"
 
-
-# ---------- Запит ----------
 
 class AssessmentRequest(BaseModel):
     """Дані для POST /api/assessments."""
@@ -70,7 +77,9 @@ class AssessmentRequest(BaseModel):
         default=None, ge=1, description="Якщо вказано, результат зберігається в історії пацієнта"
     )
     sex: Sex
-    age: int = Field(ge=18, le=120, description="Вік, роки; CKD-EPI 2021 — лише для дорослих")
+    age: int = Field(
+        ge=MIN_ADULT_AGE, le=MAX_PLAUSIBLE_AGE, description="Вік, роки; CKD-EPI 2021 — лише для дорослих"
+    )
     creatinine: float = Field(gt=0)
     creatinine_unit: CreatinineUnit = CreatinineUnit.UMOL_L
     hemoglobin: float = Field(gt=0)
@@ -88,13 +97,13 @@ class AssessmentRequest(BaseModel):
     @property
     def creatinine_umol_l(self) -> float:
         if self.creatinine_unit is CreatinineUnit.MG_DL:
-            return self.creatinine * UMOL_L_PER_MG_DL
+            return creatinine_mg_dl_to_umol_l(self.creatinine)
         return self.creatinine
 
     @property
     def hemoglobin_g_l(self) -> float:
         if self.hemoglobin_unit is HemoglobinUnit.G_DL:
-            return self.hemoglobin * G_L_PER_G_DL
+            return hemoglobin_g_dl_to_g_l(self.hemoglobin)
         return self.hemoglobin
 
     @model_validator(mode="after")
@@ -103,8 +112,6 @@ class AssessmentRequest(BaseModel):
             raise ValueError("Вагітність може бути вказана лише для жінок")
         return self
 
-
-# ---------- Відповіді ----------
 
 class AssessmentResponse(BaseModel):
     """Результат оцінювання. Не є діагнозом: заходи — лише для розгляду лікарем."""
@@ -117,7 +124,7 @@ class AssessmentResponse(BaseModel):
     egfr_source: str = Field(description="lab — з лабораторії, ckd_epi_2021 — розрахована")
     gfr_category: str = Field(description="G1, G2, G3a, G3b, G4 або G5")
     hemoglobin_g_l: float
-    anemia_grade: AnemiaGrade
+    anemia_grade: AnemiaGradeCode
     rbc_status: Optional[RbcStatus] = None
     measures: list[str] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
@@ -138,7 +145,7 @@ class HistoryItem(BaseModel):
     on_dialysis: bool
     egfr: float
     gfr_category: str
-    anemia_grade: Optional[AnemiaGrade] = None
+    anemia_grade: Optional[AnemiaGradeCode] = None
     rbc_status: Optional[RbcStatus] = None
     measures: list[str] = Field(default_factory=list)
     guideline_version: str

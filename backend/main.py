@@ -26,12 +26,20 @@ DEFAULT_CORS_ORIGINS = "http://localhost:5500,http://127.0.0.1:5500"
 
 def build_service() -> AssessmentService:
     return AssessmentService(
-        references=InMemoryReferenceRepository(),
-        assessments=InMemoryAssessmentRepository(),
+        reference_repository=InMemoryReferenceRepository(),
+        assessment_repository=InMemoryAssessmentRepository(),
     )
 
 
-def create_app(service: Optional[AssessmentService] = None) -> FastAPI:
+def cors_origins_from_env() -> list[str]:
+    raw_origins = os.getenv("CORS_ORIGINS", DEFAULT_CORS_ORIGINS)
+    return [origin.strip() for origin in raw_origins.split(",") if origin.strip()]
+
+
+def create_app(
+    service: Optional[AssessmentService] = None,
+    cors_origins: Optional[list[str]] = None,
+) -> FastAPI:
     app = FastAPI(
         title="Система підтримки лікаря: функція нирок та анемія",
         description="ШКФ за CKD-EPI 2021, категорії G1–G5, ступінь анемії. "
@@ -43,10 +51,9 @@ def create_app(service: Optional[AssessmentService] = None) -> FastAPI:
     app.include_router(assessments_router)
     register_error_handlers(app)
 
-    origins = os.getenv("CORS_ORIGINS", DEFAULT_CORS_ORIGINS).split(",")
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[o.strip() for o in origins if o.strip()],
+        allow_origins=cors_origins if cors_origins is not None else cors_origins_from_env(),
         allow_methods=["GET", "POST"],
         allow_headers=["Content-Type"],
     )

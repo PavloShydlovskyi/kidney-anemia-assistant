@@ -3,14 +3,14 @@ from datetime import date
 
 import pytest
 
-from domain.limits import Limits, Sex
+from domain.limits import Limits, Parameter, Sex
 from infrastructure.memory import (
     InMemoryAssessmentRepository,
     InMemoryReferenceRepository,
     default_reference_set,
 )
 from services.assessment_service import AssessmentInput, AssessmentService, InputLimitError
-from services.ports import UnknownPatientError
+from services.ports import ReferenceDataError, UnknownPatientError
 
 TODAY = date(2026, 11, 13)
 
@@ -47,16 +47,16 @@ def test_calculated_egfr_above_100_is_displayed_as_limit():
     assert outcome.egfr_display == "> 100" and outcome.gfr_category == "G1"
 
 
-def test_all_limit_errors_are_reported_with_request_fields():
+def test_all_limit_violations_are_reported():
     with pytest.raises(InputLimitError) as error:
         make_service().assess(make_input(creatinine_umol_l=20, hemoglobin_g_l=170, egfr_lab=101))
-    assert [e.field for e in error.value.errors] == ["egfr_lab", "creatinine", "hemoglobin"]
+    assert [v.parameter for v in error.value.violations] == [Parameter.EGFR, Parameter.CREATININE, Parameter.HEMOGLOBIN]
 
 
 def test_limits_come_from_reference_repository():
     reference = default_reference_set()
     limits = dict(reference.input_limits)
-    limits[("hemoglobin", Sex.FEMALE)] = Limits(100, 160)
+    limits[(Parameter.HEMOGLOBIN, Sex.FEMALE)] = Limits(100, 160)
     service = make_service(replace(reference, input_limits=limits))
     with pytest.raises(InputLimitError):
         service.assess(make_input(hemoglobin_g_l=95))
@@ -83,3 +83,24 @@ def test_warnings():
     assert any("15–65" in w for w in old.warnings)
     assert any("G1–G2" in w for w in old.warnings)
     assert not any("еритроцитів" in w for w in old.warnings)
+
+
+def test_evaluate_does_not_save():
+    repository = InMemoryAssessmentRepository()
+    service = AssessmentService(InMemoryReferenceRepository(), repository, today=lambda: TODAY)
+    outcome = service.evaluate(make_input(patient_id=5))
+    assert outcome.assessment_id is None
+    assert repository.list_by_patient(5) == []
+
+
+@pytest.mark.parametrize("break_reference", [
+    lambda r: replace(r, input_limits={k: v for k, v in r.input_limits.items() if k != (Parameter.CREATININE, Sex.FEMALE)}),
+    lambda r: replace(r, rbc_reference={}),
+    lambda r: replace(r, anemia_grades={Sex.MALE: r.anemia_grades[Sex.MALE]}),
+    lambda r: replace(r, gfr_categories=()),
+    lambda r: replace(r, gfr_categories=tuple(c for c in r.gfr_categories if c.code != "G5")),
+])
+def test_incomplete_reference_is_reported_not_crashed(break_reference):
+    service = make_service(break_reference(default_reference_set()))
+    with pytest.raises(ReferenceDataError, match="неповний"):
+        service.assess(make_input())

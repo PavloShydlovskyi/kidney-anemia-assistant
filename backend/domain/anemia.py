@@ -6,27 +6,33 @@
 from dataclasses import dataclass
 from typing import Mapping, Sequence
 
+from .bands import band_code
 from .limits import Sex
+
+NO_ANEMIA = "none"
+MILD = "mild"
+MODERATE = "moderate"
+SEVERE = "severe"
 
 
 @dataclass(frozen=True)
 class AnemiaGrade:
-    code: str           # none, mild, moderate, severe
-    lower_bound: float  # г/л, межа входить у ступінь
+    code: str           # NO_ANEMIA, MILD, MODERATE, SEVERE
+    lower_bound: float  # г/л
 
 
 DEFAULT_ANEMIA_GRADES: Mapping[Sex, tuple[AnemiaGrade, ...]] = {
     Sex.MALE: (
-        AnemiaGrade("none", 130),
-        AnemiaGrade("mild", 110),
-        AnemiaGrade("moderate", 80),
-        AnemiaGrade("severe", 0),
+        AnemiaGrade(NO_ANEMIA, 130),
+        AnemiaGrade(MILD, 110),
+        AnemiaGrade(MODERATE, 80),
+        AnemiaGrade(SEVERE, 0),
     ),
     Sex.FEMALE: (
-        AnemiaGrade("none", 120),
-        AnemiaGrade("mild", 110),
-        AnemiaGrade("moderate", 80),
-        AnemiaGrade("severe", 0),
+        AnemiaGrade(NO_ANEMIA, 120),
+        AnemiaGrade(MILD, 110),
+        AnemiaGrade(MODERATE, 80),
+        AnemiaGrade(SEVERE, 0),
     ),
 }
 
@@ -39,10 +45,7 @@ def classify_anemia(
     grades: Mapping[Sex, Sequence[AnemiaGrade]] = DEFAULT_ANEMIA_GRADES,
 ) -> str:
     """Повертає код ступеня анемії для гемоглобіну в г/л."""
-    for grade in sorted(grades[sex], key=lambda g: g.lower_bound, reverse=True):
-        if hemoglobin_g_l >= grade.lower_bound:
-            return grade.code
-    raise ValueError("Гемоглобін не потрапляє в жоден ступінь")
+    return band_code(hemoglobin_g_l, grades[sex])
 
 
 def anemia_thresholds_apply(age: int, pregnant: bool) -> bool:

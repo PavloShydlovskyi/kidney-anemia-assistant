@@ -9,10 +9,8 @@ from typing import Mapping, Optional, Protocol
 
 from domain.anemia import AnemiaGrade
 from domain.kidney import GfrCategory
-from domain.limits import Limits, Sex
+from domain.limits import InputLimits, Limits, Sex
 
-
-# ---------- Структури ----------
 
 @dataclass(frozen=True)
 class LabInput:
@@ -49,13 +47,11 @@ class AssessmentRecord:
 class ReferenceSet:
     """Усі межі однієї версії настанов (рядки reference_thresholds)."""
     guideline_version: str
-    input_limits: Mapping[tuple[str, Sex], Limits]
+    input_limits: InputLimits
     gfr_categories: tuple[GfrCategory, ...]
     anemia_grades: Mapping[Sex, tuple[AnemiaGrade, ...]]
     rbc_reference: Mapping[Sex, Limits] = field(default_factory=dict)
 
-
-# ---------- Інтерфейси ----------
 
 class ReferenceRepository(Protocol):
     def get_current(self) -> ReferenceSet:
@@ -69,8 +65,6 @@ class AssessmentRepository(Protocol):
     def list_by_patient(self, patient_id: int) -> list[AssessmentRecord]:
         """Історія пацієнта за датою аналізу."""
 
-
-# ---------- Винятки ----------
 
 class UnknownPatientError(Exception):
     """Пацієнта з таким id немає (API: 404)."""

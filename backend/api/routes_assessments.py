@@ -67,7 +67,7 @@ def _to_response(outcome: AssessmentOutcome) -> AssessmentResponse:
         taken_on=outcome.taken_on,
         egfr=outcome.egfr,
         egfr_display=outcome.egfr_display,
-        egfr_source=outcome.egfr_source,
+        egfr_source=outcome.egfr_source.value,
         gfr_category=outcome.gfr_category,
         hemoglobin_g_l=outcome.hemoglobin_g_l,
         anemia_grade=outcome.anemia_grade,

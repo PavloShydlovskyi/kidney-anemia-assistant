@@ -6,41 +6,42 @@ Frontend бере звідси підказки для полів, щоб фор
 """
 from fastapi import APIRouter, Depends
 
-from domain.limits import Sex
-from services.assessment_service import REQUEST_FIELD_BY_PARAMETER, AssessmentService
+from domain.limits import Limits, Parameter, Sex
+from services.assessment_service import AssessmentService
 
 from .dependencies import get_service
-from .schemas import LimitOut, ReferenceResponse
+from .schemas import REQUEST_FIELD_BY_PARAMETER, LimitOut, ReferenceResponse
 
 router = APIRouter(prefix="/api", tags=["reference"])
 
 # Коди одиниць збігаються з колонкою reference_thresholds.unit у БД.
 UNIT_BY_PARAMETER = {
-    "egfr": "ml_min_1_73m2",
-    "creatinine": "umol_l",
-    "hemoglobin": "g_l",
-    "rbc": "10e12_l",
+    Parameter.EGFR: "ml_min_1_73m2",
+    Parameter.CREATININE: "umol_l",
+    Parameter.HEMOGLOBIN: "g_l",
+    Parameter.RBC: "10e12_l",
 }
-PARAMETER_ORDER = ("egfr", "creatinine", "hemoglobin", "rbc")
-SEX_ORDER = (Sex.MALE, Sex.FEMALE)
 
 
 def load_reference_limits(service: AssessmentService = Depends(get_service)) -> list[LimitOut]:
     """Граничні значення чинної версії настанов у форматі API."""
     input_limits = service.reference().input_limits
     return [
-        LimitOut(
-            # Назви збігаються з полями запиту POST /api/assessments.
-            indicator=REQUEST_FIELD_BY_PARAMETER[parameter],
-            sex=sex,
-            lower=input_limits[(parameter, sex)].lower,
-            upper=input_limits[(parameter, sex)].upper,
-            unit=UNIT_BY_PARAMETER[parameter],
-        )
-        for parameter in PARAMETER_ORDER
-        for sex in SEX_ORDER
+        _limit_out(parameter, sex, input_limits[(parameter, sex)])
+        for parameter in Parameter
+        for sex in Sex
         if (parameter, sex) in input_limits
     ]
+
+
+def _limit_out(parameter: Parameter, sex: Sex, limits: Limits) -> LimitOut:
+    return LimitOut(
+        indicator=REQUEST_FIELD_BY_PARAMETER[parameter],
+        sex=sex,
+        lower=limits.lower,
+        upper=limits.upper,
+        unit=UNIT_BY_PARAMETER[parameter],
+    )
 
 
 @router.get(
