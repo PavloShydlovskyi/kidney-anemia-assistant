@@ -2,8 +2,11 @@ import "../styles/main.css";
 import "../styles/form.css";
 import "../styles/results.css";
 import "../styles/profile.css";
-import { createAssessment } from "./api/assessmentApi.js";
-import { getPatientAssessments } from "./api/assessmentApi.js";
+import {
+  createAssessment,
+  getPatientAssessments,
+  previewAssessment,
+} from "./api/assessmentApi.js";
 import { getReference } from "./api/referenceApi.js";
 import { createAssessmentFormView } from "./views/assessmentFormView.js";
 import { showResult } from "./views/resultView.js";
@@ -13,7 +16,11 @@ import { loadHistory } from "./controllers/historyPage.js";
 import { initProfileView } from "./views/profileView.js";
 
 const pages = ["assessment", "history", "profile"];
-const profileView = initProfileView(document.querySelector("#profile-form"));
+const guestNotice = document.querySelector("#guest-notice");
+const profileView = initProfileView(document.querySelector("#profile-form"), {
+  onChange: () => (guestNotice.hidden = true),
+});
+guestNotice.hidden = profileView.hasActiveAccount();
 function navigate(page) {
   if (!pages.includes(page)) page = "assessment";
   for (const name of pages) {
@@ -42,7 +49,7 @@ document.querySelectorAll('a[href="#assessment"]').forEach((link) =>
   }),
 );
 window.addEventListener("hashchange", () => navigate(location.hash.slice(1)));
-navigate(profileView.hasActiveAccount() ? location.hash.slice(1) : "profile");
+navigate(location.hash.slice(1));
 
 const form = document.querySelector("#assessment-form");
 const view = createAssessmentFormView(form, showResult);
@@ -53,8 +60,11 @@ getReference()
   });
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const ok = await submitAssessment(view, { createAssessment });
-  if (ok) {
+  const signedIn = profileView.hasActiveAccount();
+  const ok = await submitAssessment(view, {
+    createAssessment: signedIn ? createAssessment : previewAssessment,
+  });
+  if (ok && signedIn) {
     const id = view.readAssessmentRequest().patient_id;
     if (id) document.querySelector("#history-patient-id").value = id;
   }

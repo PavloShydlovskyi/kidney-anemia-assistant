@@ -14,7 +14,10 @@ function browserStorage() {
   }
 }
 
-export function initProfileView(form, storage = browserStorage()) {
+export function initProfileView(
+  form,
+  { storage = browserStorage(), onChange = () => {} } = {},
+) {
   const title = document.querySelector("#profile-title");
   const intro = document.querySelector("#profile-intro");
   const setupCard = document.querySelector("#account-setup");
@@ -121,6 +124,7 @@ export function initProfileView(form, storage = browserStorage()) {
     form.reset();
     mode = "auto";
     render();
+    onChange();
   });
 
   document.querySelector("#account-signout").addEventListener("click", () => {

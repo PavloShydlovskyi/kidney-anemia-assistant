@@ -119,6 +119,26 @@ a {
 .top-label {
   display: none;
 }
+.guest-notice {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: 1200px;
+  margin: 14px auto 0;
+  padding: 12px 20px;
+  color: var(--color-ink);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.guest-notice .icon {
+  color: var(--color-error);
+}
+.guest-notice a {
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 .page {
   display: none;
   max-width: 1200px;
