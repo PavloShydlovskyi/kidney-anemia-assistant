@@ -1,3 +1,156 @@
-/**
- * Стилі результату, таблиці історії та графіків.
- */
+#result-region:not(:empty) {
+  margin-top: 24px;
+  animation: pageIn 0.5s both;
+}
+.result-card,
+.chart-card,
+.history-card {
+  background: var(--color-surface);
+  border-radius: 24px;
+  padding: 22px;
+}
+.result-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.result-top h2,
+.history-title {
+  margin: 0;
+  font-size: 20px;
+  letter-spacing: -0.05em;
+}
+.result-date {
+  font-size: 10px;
+  color: var(--color-muted);
+}
+.result-grid {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+}
+.metric {
+  padding: 20px;
+  border-radius: 20px;
+  background: var(--color-soft);
+  min-width: 0;
+}
+.metric:nth-child(2) {
+  background: var(--color-soft);
+}
+.metric-label {
+  display: block;
+  color: var(--color-muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.metric-value {
+  display: block;
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.06em;
+  margin: 8px 0 1px;
+}
+.metric-sub {
+  font-size: 11px;
+  color: var(--color-muted);
+}
+.result-section {
+  margin-top: 26px;
+}
+.result-section h3 {
+  font-size: 12px;
+  margin: 0 0 12px;
+}
+.result-section ul {
+  padding-left: 18px;
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 12px;
+  line-height: 1.9;
+}
+.result-section p {
+  font-size: 12px;
+  color: var(--color-muted);
+  line-height: 1.7;
+  margin: 0;
+}
+.warning-list li {
+  color: var(--color-error);
+}
+.result-disclaimer {
+  font-size: 10px;
+  color: var(--color-muted);
+  line-height: 1.6;
+  margin: 20px 0 0;
+}
+.history-summary {
+  font-size: 12px;
+  color: var(--color-muted);
+  margin: 0 0 15px;
+}
+.charts-grid {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.chart-card h3 {
+  font-size: 14px;
+  margin: 0 0 3px;
+}
+.chart-card p {
+  font-size: 10px;
+  color: var(--color-muted);
+  margin: 0 0 20px;
+}
+.chart-wrap {
+  height: 220px;
+  position: relative;
+}
+.history-list {
+  display: grid;
+  gap: 10px;
+}
+.history-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.history-card strong {
+  font-size: 12px;
+}
+.history-card small {
+  display: block;
+  color: var(--color-muted);
+  margin-top: 5px;
+  font-size: 10px;
+}
+.history-card .badge {
+  border-radius: 12px;
+  padding: 8px 10px;
+  background: var(--color-soft);
+  color: var(--color-accent-ink);
+  font-size: 11px;
+  font-weight: 800;
+}
+.history-card .badge span {
+  font-size: 9px;
+  font-weight: 500;
+}
+.history-card .badge {
+  white-space: nowrap;
+}
+@media (min-width: 650px) {
+  .result-grid,
+  .charts-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .result-card,
+  .chart-card {
+    padding: 27px;
+  }
+}

@@ -1,4 +1,4 @@
-/**
- * Налаштування клієнта: базова адреса API (той самий origin, що й FastAPI,
- * або інша адреса для розробки), час очікування запиту.
- */
+export const API_BASE_URL = (import.meta.env?.VITE_API_BASE_URL || "").replace(
+  /\/$/,
+  "",
+);

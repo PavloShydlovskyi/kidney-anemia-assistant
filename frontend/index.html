@@ -1,4 +1,522 @@
-<!--
-  Єдина сторінка застосунку: форма обстеження, результат, історія пацієнта.
-  Підключає styles/*.css, Chart.js і src/main.js як ES-модуль.
--->
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f1f4ed" />
+    <title>RenalCare — помічник лікаря</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <svg
+      class="icon-defs"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <symbol id="icon-mark" viewBox="0 0 24 24">
+        <path
+          d="M20.5 8.5c0 5.5-8.5 11-8.5 11s-8.5-5.5-8.5-11a5 5 0 0 1 8.5-3.6 5 5 0 0 1 8.5 3.6Z"
+        />
+        <path d="M5 12h4l2-3 2 6 2-3h4" />
+      </symbol>
+      <symbol id="icon-profile" viewBox="0 0 24 24">
+        <circle cx="12" cy="8" r="4" />
+        <path d="M4 21v-2a8 8 0 0 1 16 0v2" />
+      </symbol>
+      <symbol id="icon-plus" viewBox="0 0 24 24">
+        <path d="M12 5v14M5 12h14" />
+      </symbol>
+      <symbol id="icon-history" viewBox="0 0 24 24">
+        <rect x="4" y="3" width="16" height="18" rx="3" />
+        <path d="M8 8h8M8 12h8M8 16h5" />
+      </symbol>
+      <symbol id="icon-arrow" viewBox="0 0 24 24">
+        <path d="M7 17 17 7M8 7h9v9" />
+      </symbol>
+      <symbol id="icon-info" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 11v5M12 8h.01" />
+      </symbol>
+    </svg>
+    <div class="shell">
+      <aside class="sidebar">
+        <a class="brand" href="#assessment"
+          ><span class="brand-logo"
+            ><svg class="icon" aria-hidden="true">
+              <use href="#icon-mark"></use></svg
+          ></span>
+          renal<span>care</span></a
+        >
+
+        <nav aria-label="Основна навігація">
+          <button class="nav-link active" data-page="assessment" type="button">
+            <svg class="icon" aria-hidden="true">
+              <use href="#icon-plus"></use>
+            </svg>
+            Оцінювання
+          </button>
+          <button class="nav-link" data-page="history" type="button">
+            <svg class="icon" aria-hidden="true">
+              <use href="#icon-history"></use>
+            </svg>
+            Історія
+          </button>
+          <button class="nav-link" data-page="profile" type="button">
+            <svg class="icon" aria-hidden="true">
+              <use href="#icon-profile"></use>
+            </svg>
+            Акаунт
+          </button>
+        </nav>
+        <p class="side-footer">
+          <svg class="icon" aria-hidden="true">
+            <use href="#icon-info"></use>
+          </svg>
+          Підтримка рішення лікаря
+        </p>
+      </aside>
+      <div class="main-column">
+        <header class="topbar">
+          <a class="brand mobile-brand" href="#assessment"
+            ><span class="brand-logo"
+              ><svg class="icon" aria-hidden="true">
+                <use href="#icon-mark"></use></svg
+            ></span>
+            renal<span>care</span></a
+          ><span class="top-label">Простір лікаря</span>
+        </header>
+        <div class="guest-notice" id="guest-notice" role="status">
+          <svg class="icon" aria-hidden="true">
+            <use href="#icon-info"></use>
+          </svg>
+          <span>Без акаунта результати оцінювання не зберігаються.</span>
+          <a href="#profile">Створити профіль</a>
+        </div>
+        <main>
+          <section
+            class="page visible"
+            id="assessment-page"
+            aria-labelledby="assessment-title"
+          >
+            <div class="heading compact">
+              <h1 id="assessment-title">Нове оцінювання</h1>
+              <p class="intro">
+                Заповніть лабораторні показники пацієнта. Поля зі зірочкою
+                обов’язкові.
+              </p>
+            </div>
+            <div class="form-layout">
+              <form id="assessment-form" class="form-card" novalidate>
+                <div class="form-section">
+                  <div class="form-title">
+                    <span class="step">01</span>
+                    <div>
+                      <h2>Інформація про пацієнта</h2>
+                      <p>Базові дані для оцінювання</p>
+                    </div>
+                  </div>
+                  <div class="field-grid">
+                    <div class="field">
+                      <label for="patient_id"
+                        >ID пацієнта <small>необов’язково</small></label
+                      ><input
+                        id="patient_id"
+                        name="patient_id"
+                        type="number"
+                        min="1"
+                        step="1"
+                        inputmode="numeric"
+                        placeholder="Наприклад, 1024"
+                      /><small
+                        class="field-error"
+                        data-error-for="patient_id"
+                      ></small>
+                    </div>
+                    <div class="field">
+                      <label for="age">Вік <em>*</em></label>
+                      <div class="input-wrap">
+                        <input
+                          id="age"
+                          name="age"
+                          type="number"
+                          min="18"
+                          max="120"
+                          step="1"
+                          inputmode="numeric"
+                          placeholder="18–120"
+                        /><span>років</span>
+                      </div>
+                      <small class="field-error" data-error-for="age"></small>
+                    </div>
+                  </div>
+                  <fieldset class="field sex-field">
+                    <legend>Стать <em>*</em></legend>
+                    <div class="segmented">
+                      <label
+                        ><input type="radio" name="sex" value="male" /><span
+                          >Чоловіча</span
+                        ></label
+                      ><label
+                        ><input type="radio" name="sex" value="female" /><span
+                          >Жіноча</span
+                        ></label
+                      >
+                    </div>
+                    <small class="field-error" data-error-for="sex"></small>
+                  </fieldset>
+                </div>
+                <div class="form-section">
+                  <div class="form-title">
+                    <span class="step">02</span>
+                    <div>
+                      <h2>Лабораторні показники</h2>
+                      <p>Значення з останнього аналізу</p>
+                    </div>
+                  </div>
+                  <div class="field-grid">
+                    <div class="field">
+                      <label for="creatinine">Креатинін <em>*</em></label>
+                      <div class="measure">
+                        <input
+                          id="creatinine"
+                          name="creatinine"
+                          type="number"
+                          min="0"
+                          step="any"
+                          inputmode="decimal"
+                          placeholder="Значення"
+                        /><select
+                          id="creatinine_unit"
+                          name="creatinine_unit"
+                          aria-label="Одиниця креатиніну"
+                        >
+                          <option value="umol_l">мкмоль/л</option>
+                          <option value="mg_dl">мг/дл</option>
+                        </select>
+                      </div>
+                      <small
+                        class="field-hint"
+                        data-hint-for="creatinine"
+                      ></small
+                      ><small
+                        class="field-error"
+                        data-error-for="creatinine"
+                      ></small>
+                    </div>
+                    <div class="field">
+                      <label for="hemoglobin">Гемоглобін <em>*</em></label>
+                      <div class="measure">
+                        <input
+                          id="hemoglobin"
+                          name="hemoglobin"
+                          type="number"
+                          min="0"
+                          step="any"
+                          inputmode="decimal"
+                          placeholder="Значення"
+                        /><select
+                          id="hemoglobin_unit"
+                          name="hemoglobin_unit"
+                          aria-label="Одиниця гемоглобіну"
+                        >
+                          <option value="g_l">г/л</option>
+                          <option value="g_dl">г/дл</option>
+                        </select>
+                      </div>
+                      <small
+                        class="field-hint"
+                        data-hint-for="hemoglobin"
+                      ></small
+                      ><small
+                        class="field-error"
+                        data-error-for="hemoglobin"
+                      ></small>
+                    </div>
+                    <div class="field">
+                      <label for="rbc"
+                        >Еритроцити <small>необов’язково</small></label
+                      >
+                      <div class="input-wrap">
+                        <input
+                          id="rbc"
+                          name="rbc"
+                          type="number"
+                          min="0"
+                          step="any"
+                          inputmode="decimal"
+                          placeholder="Значення"
+                        /><span>×10¹²/л</span>
+                      </div>
+                      <small class="field-hint" data-hint-for="rbc"></small
+                      ><small class="field-error" data-error-for="rbc"></small>
+                    </div>
+                    <div class="field">
+                      <label for="egfr_lab"
+                        >ШКФ лабораторії <small>необов’язково</small></label
+                      >
+                      <div class="input-wrap">
+                        <input
+                          id="egfr_lab"
+                          name="egfr_lab"
+                          type="number"
+                          min="0"
+                          step="any"
+                          inputmode="decimal"
+                          placeholder="Якщо відома"
+                        /><span>мл/хв</span>
+                      </div>
+                      <small class="field-hint"
+                        >Якщо порожньо, сервер розрахує ШКФ</small
+                      ><small
+                        class="field-error"
+                        data-error-for="egfr_lab"
+                      ></small>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-section last">
+                  <div class="form-title">
+                    <span class="step">03</span>
+                    <div>
+                      <h2>Додаткові відомості</h2>
+                      <p>Для правильної інтерпретації</p>
+                    </div>
+                  </div>
+                  <label class="toggle-row"
+                    ><span
+                      ><strong>Пацієнт на діалізі</strong
+                      ><small>Врахувати під час оцінювання</small></span
+                    ><input
+                      id="on_dialysis"
+                      name="on_dialysis"
+                      type="checkbox" /><span class="switch"></span></label
+                  ><label class="toggle-row" id="pregnant-row" hidden
+                    ><span
+                      ><strong>Вагітність</strong
+                      ><small>Доступно для пацієнток</small></span
+                    ><input
+                      id="pregnant"
+                      name="pregnant"
+                      type="checkbox" /><span class="switch"></span
+                  ></label>
+                </div>
+                <div
+                  id="form-error"
+                  class="form-error"
+                  role="alert"
+                  hidden
+                ></div>
+                <button
+                  class="button primary submit"
+                  id="submit-button"
+                  type="submit"
+                >
+                  <span class="button-label">Отримати результат</span
+                  ><span class="button-arrow"
+                    ><svg class="icon" aria-hidden="true">
+                      <use href="#icon-arrow"></use></svg></span
+                  ><span class="spinner"></span>
+                </button>
+                <p class="footnote">
+                  Дані обробляє сервер відповідно до клінічних правил проєкту.
+                </p>
+              </form>
+              <aside class="info-card">
+                <span class="info-icon"
+                  ><svg class="icon" aria-hidden="true">
+                    <use href="#icon-mark"></use></svg
+                ></span>
+
+                <h3>Результат оцінювання</h3>
+                <ul>
+                  <li>ШКФ і категорія функції нирок</li>
+                  <li>Ступінь анемії</li>
+                  <li>Показники еритроцитів</li>
+                  <li>Застереження та заходи для розгляду</li>
+                </ul>
+              </aside>
+            </div>
+            <div id="result-region" aria-live="polite"></div>
+          </section>
+          <section
+            class="page"
+            id="history-page"
+            aria-labelledby="history-title"
+            hidden
+          >
+            <div class="heading compact">
+              <h1 id="history-title">Історія пацієнта</h1>
+              <p class="intro">
+                Перегляньте попередні обстеження та зміни показників.
+              </p>
+            </div>
+            <form id="history-form" class="history-search" novalidate>
+              <div class="field">
+                <label for="history-patient-id">ID пацієнта</label
+                ><input
+                  id="history-patient-id"
+                  type="number"
+                  min="1"
+                  step="1"
+                  inputmode="numeric"
+                  placeholder="Введіть ID пацієнта"
+                /><small class="field-error" id="history-error"></small>
+              </div>
+              <button class="button primary" type="submit">
+                Показати історію
+                <svg class="icon" aria-hidden="true">
+                  <use href="#icon-arrow"></use>
+                </svg>
+              </button>
+            </form>
+            <div id="history-region" aria-live="polite">
+              <div class="empty-state">
+                <span class="empty-icon"
+                  ><svg class="icon" aria-hidden="true">
+                    <use href="#icon-history"></use></svg
+                ></span>
+                <h2>Історію не відкрито</h2>
+                <p>
+                  Введіть ID пацієнта, щоб побачити попередні оцінювання та
+                  графіки.
+                </p>
+              </div>
+            </div>
+          </section>
+          <section
+            class="page"
+            id="profile-page"
+            aria-labelledby="profile-title"
+            hidden
+          >
+            <div class="heading compact">
+              <h1 id="profile-title">Акаунт</h1>
+              <p class="intro" id="profile-intro">
+                Увійдіть, щоб зберігати оцінювання та переглядати історію.
+              </p>
+            </div>
+            <div class="profile-card" id="account-auth">
+              <div class="profile-heading">
+                <span class="profile-symbol"
+                  ><svg class="icon" aria-hidden="true">
+                    <use href="#icon-profile"></use></svg
+                ></span>
+                <div>
+                  <h2 id="auth-title">Увійти в акаунт</h2>
+                  <p>Використайте дані свого акаунта.</p>
+                </div>
+              </div>
+              <form id="profile-form" novalidate>
+                <div class="field" id="profile-name-row" hidden>
+                  <label for="profile-name">Ім’я та прізвище</label>
+                  <input
+                    id="profile-name"
+                    name="display_name"
+                    type="text"
+                    maxlength="80"
+                    autocomplete="name"
+                    placeholder="Ваше ім’я"
+                  />
+                  <small
+                    class="field-error"
+                    data-profile-error="display_name"
+                  ></small>
+                </div>
+                <div class="field">
+                  <label for="profile-email">Електронна пошта</label>
+                  <input
+                    id="profile-email"
+                    name="email"
+                    type="email"
+                    maxlength="254"
+                    autocomplete="email"
+                    inputmode="email"
+                    placeholder="name@example.com"
+                  />
+                  <small class="field-error" data-profile-error="email"></small>
+                </div>
+                <div class="field">
+                  <label for="profile-password">Пароль</label>
+                  <input
+                    id="profile-password"
+                    name="password"
+                    type="password"
+                    minlength="8"
+                    autocomplete="current-password"
+                    placeholder="Щонайменше 8 символів"
+                  />
+                  <small
+                    class="field-error"
+                    data-profile-error="password"
+                  ></small>
+                </div>
+                <button class="button primary" id="auth-submit" type="submit">
+                  Увійти
+                </button>
+              </form>
+              <button class="profile-mode" id="auth-toggle" type="button">
+                Створити акаунт
+              </button>
+            </div>
+            <div class="profile-card" id="account-current" hidden>
+              <div class="profile-heading">
+                <span class="profile-symbol"
+                  ><svg class="icon" aria-hidden="true">
+                    <use href="#icon-profile"></use></svg
+                ></span>
+                <div>
+                  <h2>Поточний користувач</h2>
+                  <p>Ваш акаунт</p>
+                </div>
+              </div>
+              <div class="account-details">
+                <strong id="account-name"></strong
+                ><span id="account-email"></span>
+              </div>
+              <button
+                class="button account-signout"
+                id="account-signout"
+                type="button"
+              >
+                Вийти з акаунта
+              </button>
+            </div>
+            <p
+              id="profile-status"
+              class="profile-status"
+              role="status"
+              aria-live="polite"
+              hidden
+            ></p>
+          </section>
+        </main>
+      </div>
+      <nav class="bottom-nav" aria-label="Мобільна навігація">
+        <button class="bottom-link active" data-page="assessment" type="button">
+          <svg class="icon" aria-hidden="true">
+            <use href="#icon-plus"></use>
+          </svg>
+          <span>Оцінювання</span>
+        </button>
+        <button class="bottom-link" data-page="history" type="button">
+          <svg class="icon" aria-hidden="true">
+            <use href="#icon-history"></use>
+          </svg>
+          <span>Історія</span>
+        </button>
+        <button class="bottom-link" data-page="profile" type="button">
+          <svg class="icon" aria-hidden="true">
+            <use href="#icon-profile"></use>
+          </svg>
+          <span>Акаунт</span>
+        </button>
+      </nav>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

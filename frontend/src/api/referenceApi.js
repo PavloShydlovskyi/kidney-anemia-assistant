@@ -1,5 +1,2 @@
-/**
- * getReference() -> GET /api/reference
- * Граничні значення для підказок у формі. Клієнт їх не змінює
- * і не зберігає власних копій порогів.
- */
+import { request } from "./httpClient.js";
+export const getReference = (fetcher) => request("/api/reference", {}, fetcher);
